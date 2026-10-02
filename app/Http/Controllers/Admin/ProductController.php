@@ -68,7 +68,10 @@ class ProductController extends Controller
     public function edit(Product $product): Response
     {
         return Inertia::render('Admin/Products/Edit', [
-            'product' => new ProductResource($product),
+            // resolve() = props flat tanpa bungkusan {data: ...} — lihat
+            // catatan serupa di Kasir\ShiftController@tutup &
+            // docs/DECISIONS.md.
+            'product' => (new ProductResource($product))->resolve(),
             'categoryOptions' => $this->categoryOptions(),
         ]);
     }

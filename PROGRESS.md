@@ -6,10 +6,11 @@
 
 ## Status Saat Ini
 
-**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.4 (Manajemen Produk & Kategori)**.
-**Belum dikerjakan:** 1.5 (Shift Kasir) dan seterusnya — lihat `docs/ROADMAP.md`.
+**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.5 (Shift Kasir)**.
+**Belum dikerjakan:** 1.6 (Transaksi/Checkout) dan seterusnya — lihat `docs/ROADMAP.md`.
 
-**Commit terakhir:** lihat `git log --oneline -1` — commit terakhir berjudul "feat: Fase 1.4 — CRUD Kategori & Produk (Admin)".
+**Commit terakhir:** `1f2bce5` "fix: halaman Produk blank karena shape paginator dibungkus ganda".
+**PENTING:** perubahan Fase 1.5 (shift) + 1 file lama (`resources/js/Components/Dropdown.vue`, perubahan sesi sebelumnya) masih di **working tree, BELUM di-commit** — jalankan `git status` & `git diff` sebelum lanjut, jangan menganggap repo bersih.
 
 ## Yang Sudah Jadi (Verified, Bukan Asumsi)
 
@@ -35,14 +36,22 @@
 - CRUD Produk penuh (`Admin/Products/{Index,Create,Edit}.vue`): search + filter kategori + pagination di Index, validasi SKU/barcode unik, badge status stok (aman/menipis/habis)
 - Stok awal produk dicatat via `stock_movements` (bukan isi kolom `stock` langsung) lewat `CreateProductAction` — lihat `docs/DECISIONS.md`. Form Edit Produk TIDAK punya field stok sama sekali (perubahan stok nanti lewat Penyesuaian Manual, Fase 1.9)
 - Bug fix `Input.vue` (`type="number"` dulu diam-diam emit string, sekarang emit number) dan `Select.vue` (placeholder dulu tidak bisa dipilih balik untuk reset ke `null`) — lihat `docs/DECISIONS.md`, berdampak ke semua pemakaian komponen ini di seluruh app
-- `AdminLayout` menu sidebar: "Dashboard", "Daftar Produk", "Kategori" sekarang route nyata; sisanya (Stok, Transaksi, Laporan, Pengguna, Pengaturan) masih `href="#"`
-- 57 test lulus (12 CategoryTest + 13 ProductTest baru), Pint & ESLint clean
+- `AdminLayout` menu sidebar: "Dashboard", "Daftar Produk", "Kategori", "Riwayat Shift" sekarang route nyata; sisanya (Stok, Transaksi, Laporan, Pengguna, Pengaturan) masih `href="#"`
+- Fase 1.5 Shift Kasir selesai & teruji (76 test lulus)
+- **Buka/Tutup Shift (kasir)**: `kasir.shift.buka`/`kasir.shift.store`, `kasir.shift.tutup`/`kasir.shift.close` — Action di `app/Actions/Shift/` (`OpenShiftAction`, `CloseShiftAction`, `CalculateExpectedCashAction`), Form Request di `app/Http/Requests/Kasir/`
+- **Constraint satu shift aktif per kasir** divalidasi di `OpenShiftAction` dalam `DB::transaction()` + `lockForUpdate()` baris `users` (cegah race check-then-insert)
+- **`expected_cash` dihitung backend saat tutup**: `opening_cash` + transaksi cash berstatus `completed` (transfer & voided tidak dihitung); preview rekap di halaman Tutup Shift memakai Action yang sama
+- **Riwayat shift**: halaman `Kasir/Shift/Riwayat.vue` (milik sendiri, di luar middleware `shift.active` supaya bisa dilihat setelah shift ditutup) & `Admin/Shifts/Index.vue` (semua kasir, filter status + nama kasir, route `admin.shifts.index`)
+- **`ShiftResource`** (konversi UTC → timezone `store_settings` di layer Resource) + `ShiftFactory`; `tests/TestCase.php` kini men-seed `store_settings` karena Resource butuh row itu
+- **`shiftIsActive` & `flash` di-share `HandleInertiaRequests`** → KasirLayout baca dari shared props (badge shift + link "Tutup Shift"), `Toast.vue` menampilkan flash `success`/`error` dari redirect backend sebagai toast
+- **Bug fix penting:** props **single Resource** yang dilempar mentah (`new ProductResource($p)`) dibungkus Inertia jadi `{data: ...}` lewat jalur `Responsable` → halaman Edit Produk/Kategori sebelumnya membaca `undefined`. Sekarang semua pakai `->resolve()` — lihat `docs/DECISIONS.md`
+- 76 test lulus (16 shift kasir + 4 riwayat shift admin + 2 regression Edit + 54 lainnya), Pint, ESLint, `vue-tsc`/`npm run build` clean
 
 ## Yang BELUM Ada (Jangan Diasumsikan Sudah Jadi)
 
-- **Belum ada checkout/shift sungguhan** — `Pages/Kasir/` masih 2 halaman placeholder (Transaksi, Shift/Buka), isi sungguhan menyusul Fase 1.5 (Shift) dan 1.6 (Checkout).
+- **Belum ada checkout/transaksi sungguhan** — `Pages/Kasir/Transaksi.vue` masih placeholder, isi sungguhan menyusul Fase 1.6 (lihat `docs/features/checkout.md`). Halaman shift (Buka, Tutup, Riwayat) sudah final.
 - Komponen chart (`StatCard`, `LineChart`, `BarChart`, dll) di `docs/UI.md` **sengaja belum dibuat** — ditunda ke Fase 1.11, lihat `docs/DECISIONS.md`. Chart.js/`vue-chartjs` juga belum ter-install.
-- Tidak ada `CreateTransactionAction`, tidak ada checkout sungguhan, tidak ada form shift sungguhan.
+- Tidak ada `CreateTransactionAction`, tidak ada checkout sungguhan.
 - Tidak ada halaman **Stok — Riwayat Pergerakan** / **Penyesuaian Manual** (Fase 1.9) — `stock_movements` sudah bisa diisi lewat `CreateProductAction`, tapi belum ada UI untuk melihat riwayatnya atau input manual (barang masuk/koreksi) di luar saat create produk.
 - Modal inline untuk tambah kategori cepat dari form Produk **sengaja tidak dibuat** (halaman terpisah dipilih) — lihat `docs/DECISIONS.md`.
 
@@ -67,6 +76,9 @@ Baca `docs/DECISIONS.md` secara lengkap — berisi keputusan arsitektur yang sud
 15. Kategori yang masih punya produk/subkategori anak tidak bisa dihapus — lihat `DeleteCategoryAction`, jangan hapus validasi ini
 16. Tambah kategori dari form Produk pakai halaman terpisah (`/admin/categories/create`), bukan modal inline — ini keputusan final, bukan sementara
 17. **Halaman list yang dipaginasi WAJIB kirim paginator flat ke Inertia** (`$query->paginate()->through(fn ($item) => (new XResource($item))->resolve())`), JANGAN `XResource::collection($paginator)` — yang kedua membungkus data jadi `{data, links, meta}` nested, tidak cocok dengan `Paginated<T>`/`Pagination.vue` yang mengasumsikan shape flat. Ini pernah bikin halaman Produk blank total (lihat `docs/DECISIONS.md`) — selalu tambahkan test `assertInertia()` yang cek shape untuk halaman list baru, jangan cuma `assertOk()`.
+18. **Props single Resource juga wajib `->resolve()`** — `new XResource($model)` mentah dibungkus Inertia jadi `{data: {...}}` lewat jalur `Responsable` (`JsonResource::$wrap = 'data'`), yang dulu bikin form Edit Produk/Kategori baca `undefined`. Berlaku untuk semua halaman detail/edit.
+19. **Shift (Fase 1.5):** `expected_cash` dihitung backend (modal awal + transaksi **cash `completed`** — transfer & voided tidak dihitung), bukan dari frontend; satu shift aktif per kasir dijamin `lockForUpdate()` di `OpenShiftAction`; riwayat shift kasir (`kasir.shift.riwayat`) TIDAK dijaga middleware `shift.active`.
+20. **`shiftIsActive` & `flash` dishare lewat `HandleInertiaRequests`** — jangan kirim prop shift per halaman; `Toast.vue` sudah jadi jembatan flash→toast, cukup `->with('success', ...)` di controller.
 
 ## Cara Melanjutkan (Prompt Starter untuk AI Baru)
 
@@ -81,7 +93,8 @@ Baca file-file ini secara berurutan sebelum mulai kerja apa pun:
 5. docs/DATABASE.md, docs/PRD.md, docs/UI.md — konteks produk sesuai kebutuhan
 6. docs/features/*.md — spec detail kalau mengerjakan fitur yang sudah ada filenya
 
-Lanjutkan dari Fase 1.5 (Shift Kasir) di docs/ROADMAP.md.
+Lanjutkan dari Fase 1.6 (Transaksi/Checkout) di docs/ROADMAP.md —
+baca docs/features/checkout.md dulu.
 Jalankan `php artisan test` setelah tiap perubahan, jangan nyatakan selesai
 tanpa verifikasi nyata (migration benar-benar jalan, test benar-benar lulus).
 ```

@@ -146,3 +146,21 @@ test('kasir cannot access category routes', function () {
 
     $response->assertForbidden();
 });
+
+// Regression: resource yang dilempar mentah ke Inertia dibungkus jadi
+// {data: {...}} oleh jalur Responsable (bukan lewat ->resolve()), sehingga
+// halaman Edit membaca props.category.name = undefined. Lihat
+// docs/DECISIONS.md.
+test('category edit page receives flat category props', function () {
+    $admin = adminUser();
+    $category = Category::factory()->create(['name' => 'Snack']);
+
+    $response = $this->actingAs($admin)->get(route('admin.categories.edit', $category));
+
+    $response->assertInertia(
+        fn ($page) => $page
+            ->component('Admin/Categories/Edit')
+            ->where('category.name', 'Snack')
+            ->missing('category.data')
+    );
+});

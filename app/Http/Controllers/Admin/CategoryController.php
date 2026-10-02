@@ -50,7 +50,10 @@ class CategoryController extends Controller
     public function edit(Category $category): Response
     {
         return Inertia::render('Admin/Categories/Edit', [
-            'category' => new CategoryResource($category),
+            // resolve() = props flat tanpa bungkusan {data: ...} — lihat
+            // catatan serupa di Kasir\ShiftController@tutup &
+            // docs/DECISIONS.md.
+            'category' => (new CategoryResource($category))->resolve(),
             'parentOptions' => $this->parentOptions(excludeId: $category->id),
         ]);
     }

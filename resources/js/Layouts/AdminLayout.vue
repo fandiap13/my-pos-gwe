@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Sidebar + header untuk Pages/Admin/ — lihat docs/UI.md "Layout" &
 // "Referensi Visual". Menu mengikuti docs/UI.md "Daftar Halaman" Mode
-// Admin. Route belum ada (Fase 1.3+), href sementara "#" — diisi saat
-// routes/admin.php dibuat.
+// Admin. Item aktif (halaman yang sedang dibuka) berlatar tint primer +
+// garis penanda di kiri, dan grup yang berisi halaman aktif ikut terbuka.
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import Toast from '@/Components/Toast.vue';
@@ -11,6 +11,7 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import {
     BarChart3,
     ChevronDown,
+    Clock,
     LayoutDashboard,
     LogOut,
     Package,
@@ -21,7 +22,7 @@ import {
     Users,
     Warehouse,
 } from '@lucide/vue';
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const page = usePage<PageProps>();
 
@@ -31,6 +32,12 @@ interface MenuItem {
     label: string;
     icon: typeof LayoutDashboard;
     href: string;
+    /**
+     * Prefix nama route (Ziggy) untuk deteksi halaman aktif, mis.
+     * 'admin.products' aktif untuk admin.products.index/.create/.edit.
+     * Tidak diisi untuk menu placeholder (href '#') — tidak pernah aktif.
+     */
+    routeName?: string;
 }
 
 interface MenuGroup {
@@ -44,6 +51,7 @@ const menu: (MenuItem | MenuGroup)[] = [
         label: 'Dashboard',
         icon: LayoutDashboard,
         href: route('admin.dashboard'),
+        routeName: 'admin.dashboard',
     },
     {
         label: 'Produk',
@@ -53,16 +61,23 @@ const menu: (MenuItem | MenuGroup)[] = [
                 label: 'Daftar Produk',
                 icon: Package,
                 href: route('admin.products.index'),
+                routeName: 'admin.products',
             },
             {
                 label: 'Kategori',
                 icon: Tags,
                 href: route('admin.categories.index'),
+                routeName: 'admin.categories',
             },
         ],
     },
     { label: 'Stok', icon: Warehouse, href: '#' },
     { label: 'Transaksi', icon: ShoppingCart, href: '#' },
+    {
+        label: 'Riwayat Shift',
+        icon: Clock,
+        href: route('admin.shifts.index'),
+    },
     {
         label: 'Laporan',
         icon: BarChart3,
@@ -79,6 +94,29 @@ function isGroup(item: MenuItem | MenuGroup): item is MenuGroup {
     return 'children' in item;
 }
 
+// route().current() membaca window.location, yang bukan dependency reaktif
+// Vue — page.url dipakai sebagai pemicu supaya nama route dihitung ulang
+// setiap Inertia navigasi.
+const currentRouteName = computed(() => {
+    void page.url;
+    return route().current();
+});
+
+function isActive(item: MenuItem): boolean {
+    if (!item.routeName || !currentRouteName.value) {
+        return false;
+    }
+
+    return (
+        currentRouteName.value === item.routeName ||
+        currentRouteName.value.startsWith(`${item.routeName}.`)
+    );
+}
+
+function isActiveGroup(item: MenuGroup): boolean {
+    return item.children.some(isActive);
+}
+
 const openGroups = ref<Set<string>>(new Set());
 
 function toggleGroup(label: string) {
@@ -87,6 +125,28 @@ function toggleGroup(label: string) {
     } else {
         openGroups.value.add(label);
     }
+}
+
+// Grup yang berisi halaman aktif wajib terbuka saat halaman dibuka,
+// supaya item aktifnya kelihatan (bukan terlipat di dalam grup tertutup).
+function openActiveGroups() {
+    menu.forEach((item) => {
+        if (isGroup(item) && isActiveGroup(item)) {
+            openGroups.value.add(item.label);
+        }
+    });
+}
+
+openActiveGroups();
+watch(currentRouteName, openActiveGroups);
+
+// Class item menu: aktif = tint primer + penanda kiri, sisanya netral.
+function itemClass(active: boolean): string {
+    const state = active
+        ? 'border-primary-dark bg-primary-light font-medium text-primary-dark'
+        : 'border-transparent text-text-muted hover:bg-primary-light hover:text-primary-dark';
+
+    return `rounded-control border-l-2 ${state}`;
 }
 
 // Logout adalah aksi berisiko (mengakhiri sesi kerja) — wajib dialog
@@ -122,7 +182,9 @@ function logout() {
                     <button
                         v-if="isGroup(item)"
                         type="button"
-                        class="flex w-full items-center gap-3 rounded-control px-3 py-2 text-sm text-text-muted hover:bg-primary-light hover:text-primary-dark"
+                        class="flex w-full items-center gap-3 px-3 py-2 text-sm"
+                        :class="itemClass(isActiveGroup(item))"
+                        :aria-expanded="openGroups.has(item.label)"
                         @click="toggleGroup(item.label)"
                     >
                         <component :is="item.icon" class="h-4 w-4 shrink-0" />
@@ -149,7 +211,8 @@ function logout() {
                             v-for="child in item.children"
                             :key="child.label"
                             :href="child.href"
-                            class="block rounded-control px-3 py-1.5 text-sm text-text-muted hover:bg-primary-light hover:text-primary-dark"
+                            class="block px-3 py-1.5 text-sm"
+                            :class="itemClass(isActive(child))"
                         >
                             {{ child.label }}
                         </Link>
@@ -157,7 +220,8 @@ function logout() {
                     <Link
                         v-else-if="!isGroup(item)"
                         :href="item.href"
-                        class="flex items-center gap-3 rounded-control px-3 py-2 text-sm text-text-muted hover:bg-primary-light hover:text-primary-dark"
+                        class="flex items-center gap-3 px-3 py-2 text-sm"
+                        :class="itemClass(isActive(item))"
                     >
                         <component :is="item.icon" class="h-4 w-4 shrink-0" />
                         <span v-if="!collapsed">{{ item.label }}</span>

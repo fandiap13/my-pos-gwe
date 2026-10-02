@@ -25,6 +25,23 @@ export interface Product {
 
 export type PaymentMethod = 'cash' | 'transfer' | 'debit';
 
+export type ShiftStatus = 'open' | 'closed';
+
+// Mirrors ShiftResource (app/Http/Resources/ShiftResource.php). Timestamp
+// sudah dikonversi UTC → zona waktu toko di backend, format 'Y-m-d H:i'.
+export interface Shift {
+    id: string;
+    user_id: string;
+    user_name?: string | null;
+    opening_cash: number;
+    closing_cash: number | null;
+    expected_cash: number | null;
+    cash_difference: number | null;
+    status: ShiftStatus;
+    opened_at: string;
+    closed_at: string | null;
+}
+
 // Item di keranjang kasir — state lokal di halaman Transaksi (Fase 1.6),
 // bukan model dari backend. Snapshot nama & harga diambil dari Product
 // saat ditambahkan, konsisten dengan transaction_items nanti.

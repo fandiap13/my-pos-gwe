@@ -1,8 +1,31 @@
 <script setup lang="ts">
 import { useToast, type ToastTone } from '@/composables/useToast';
+import type { PageProps } from '@/types';
+import { usePage } from '@inertiajs/vue3';
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from '@lucide/vue';
+import { watch } from 'vue';
 
-const { toasts, dismiss } = useToast();
+const { toasts, dismiss, success, danger } = useToast();
+
+// Flash message dari redirect backend (->with('success'|'error', ...)) →
+// toast. Dipasang di sini karena komponen ini dirender sekali oleh tiap
+// Layout (Admin/Kasir/Auth). immediate: true supaya pesan dari redirect
+// langsung tampil saat halaman pertama dimount — nilainya sudah ada sejak
+// awal, bukan hasil perubahan state.
+const page = usePage<PageProps>();
+
+watch(
+    () => [page.props.flash?.success, page.props.flash?.error],
+    ([flashSuccess, flashError]) => {
+        if (flashSuccess) {
+            success(flashSuccess);
+        }
+        if (flashError) {
+            danger(flashError);
+        }
+    },
+    { immediate: true },
+);
 
 const toneClasses: Record<ToastTone, string> = {
     success: 'bg-primary-light text-primary-dark',

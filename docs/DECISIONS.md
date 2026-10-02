@@ -10,6 +10,35 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 
 ---
 
+### [2026-10-02] Fase 1.5: props single Resource wajib `->resolve()` (bug halaman Edit)
+- **Keputusan:** Saat mengirim **satu** model Resource ke Inertia, controller WAJIB menulis `(new XResource($model))->resolve()` (bukan `new XResource($model)` mentah). Berlaku juga untuk prop hasil paginasi via `->through()` seperti keputusan sebelumnya.
+- **Alasan:** Inertia me-resolve props lewat jalur `Responsable` (`ResourceResponse::toResponse()`), dan `JsonResource::$wrap` default-nya `'data'` — sehingga `new ProductResource($product)` tiba di frontend sebagai `{data: {...}}`, bukan object flat. Ini bikin halaman **Edit Produk & Edit Kategori membaca `props.product.name` = `undefined`** (form kosong, `route(..., props.product.id)` gagal) — ketahuan saat membangun Fase 1.5, sebelumnya tidak pernah ada test yang memeriksa shape props halaman Edit. `->resolve()` mengembalikan array flat hasil `toArray()` tanpa bungkusan.
+- **Alternatif yang ditolak:** `JsonResource::withoutWrapping()` global di `AppServiceProvider` — meniadakan bungkusan untuk SEMUA resource, tapi sekaligus membongkar props koleksi yang sudah dikonsumsi frontend dalam bentuk terbungkus (`categories: { data: Category[] }` di halaman Produk/Kategori) sehingga menyentuh halaman yang sedang berjalan; pendekatan eksplisit `->resolve()` konsisten dengan keputusan paginator sebelumnya.
+- **Dampak:** Diperbaiki di `ProductController@edit`, `CategoryController@edit`, `Kasir\ShiftController@tutup`. Tambah test `assertInertia()` shape untuk halaman detail/edit baru (lihat `product edit page receives flat product props` di `tests/Feature/Admin/ProductTest.php`).
+
+---
+
+### [2026-10-02] Fase 1.5: `shiftIsActive` & `flash` di-share HandleInertiaRequests
+- **Keputusan:**
+  1. `HandleInertiaRequests::share()` mengirim `shiftIsActive` (boolean untuk kasir, `null` untuk admin) — dihitung backend, bukan dikirim per halaman.
+  2. `HandleInertiaRequests::share()` mengirim `flash: {success, error}` dari session, dan `Components/Toast.vue` me-watch-nya (`immediate`) untuk menampilkan toast.
+- **Alasan:** Badge "Shift Aktif/Tidak Aktif" + link Tutup Shift di `KasirLayout` harus benar di semua halaman kasir (Buka/Tutup/Riwayat/Transaksi) tanpa tiap halaman mengirim prop sendiri (placeholder dulu memalsukan nilainya). Controller sudah mengatur `->with('success', ...)` sejak Fase 1.4 tapi tidak pernah tampil karena flash tidak dishare ke Inertia — toast otomatis menghubungkan keduanya untuk semua halaman.
+- **Alternatif yang ditolak:** Tiap halaman mengirim `shiftIsActive` sendiri (rawan tidak konsisten, logika duplikat); bridge flash→toast per layout (duplikat di 3 layout — cukup sekali di `Toast.vue` yang memang dirender tiap layout).
+- **Dampak:** `KasirLayout` tidak lagi menerima prop `shiftIsActive` (baca dari `page.props`); tipe `PageProps` di `resources/js/types/index.d.ts` bertambah `shiftIsActive` & `flash`.
+
+---
+
+### [2026-10-02] Fase 1.5: aturan hitung kas shift (expected_cash, satu shift aktif, riwayat)
+- **Keputusan:**
+  1. `expected_cash` = `opening_cash` + total transaksi **`payment_method = cash` DAN `status = completed`** selama shift berjalan. Dihitung backend saat tutup shift (`CloseShiftAction`) DAN saat render halaman Tutup Shift sebagai preview (`CalculateExpectedCashAction`) — nilai preview dari frontend tidak pernah dipercaya.
+  2. Constraint satu shift aktif per kasir divalidasi di `OpenShiftAction` **di dalam `DB::transaction()` + `lockForUpdate()` pada baris `users`** — supaya dua request buka shift bersamaan tidak lolos cek check-then-insert.
+  3. Riwayat shift kasir (`kasir.shift.riwayat`) TIDAK dipasangi middleware `shift.active` — kasir harus tetap bisa melihat riwayatnya setelah shift ditutup; halaman Tutup Shift tetap dijaga `shift.active`.
+- **Alasan:** Transaksi voided = uang sudah kembali ke pelanggan, jadi tidak boleh dihitung sebagai kas. Lock diperlukan karena DB constraint biasa tidak bisa menangani kondisi "hanya saat status open". Riwayat adalah data read-only milik sendiri, mengharuskan shift aktif justru memblokir kasir yang baru saja menutup shift.
+- **Alternatif yang ditolak:** Hitung `expected_cash` hanya di frontend (bisa dimanipulasi & race dengan transaksi baru); partial unique index di DB (tidak bisa mengecualikan status non-open tanpa partial index yang rumit — cukup validasi aplikasi sesuai catatan `docs/DATABASE.md`); menaruh riwayat di balik `shift.active` (menghalangi akses riwayat setelah tutup shift).
+- **Dampak:** Selisih kas (`closing_cash - expected_cash`) tetap dihitung di accessor model `Shift::cashDifference()`, tidak ada kolom baru. Transaksi non-cash (transfer/debit) tidak memengaruhi rekap kas. Lihat `app/Actions/Shift/`.
+
+---
+
 ### [2026-10-02] Bug fix: halaman Produk blank karena shape paginator ganda-bungkus
 - **Keputusan:** Untuk halaman list yang dipaginasi, controller WAJIB kirim paginator flat ke Inertia (`$query->paginate()->through(fn ($item) => (new XResource($item))->resolve())`), BUKAN `XResource::collection($paginator)`. Frontend (`Paginated<T>` di `types/pagination.ts`, dipakai `Pagination.vue`) mengasumsikan `current_page`, `data`, `last_page`, `links`, dll ada di level yang sama — bukan nested di `meta`.
 - **Alasan:** `ProductController@index` awalnya pakai `ProductResource::collection($products)` pada hasil `paginate()`. Laravel Resource Collection memisahkan pagination meta ke key `meta`/`links` terpisah dari `data`, BUKAN shape flat seperti `LengthAwarePaginator::toArray()` biasa. Akibatnya props `products` di Inertia punya shape `{ data: [...], links: {...}, meta: {...} }`, tapi `Index.vue` ditulis mengasumsikan `{ data: { data: [...], links: [...], current_page, ... } }` (mengira seluruh resource collection ada di `products.data`). Mismatch ini membuat `products.data.data` jadi `undefined`, `.length` throw TypeError di tengah render, dan Vue gagal mount — hasilnya halaman benar-benar blank tanpa error di server log (request tetap 200, errornya murni di JS browser).

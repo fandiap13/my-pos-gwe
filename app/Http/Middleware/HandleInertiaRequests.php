@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Shift;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,10 +30,27 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+            ],
+            // Indikator shift di header KasirLayout — dihitung di backend
+            // supaya semua halaman kasir otomatis konsisten tanpa tiap
+            // halaman mengirim prop sendiri. Hanya relevan untuk kasir.
+            'shiftIsActive' => $user?->isKasir()
+                ? Shift::query()
+                    ->where('user_id', $user->id)
+                    ->where('status', Shift::STATUS_OPEN)
+                    ->exists()
+                : null,
+            // Flash message dari redirect backend (->with('success', ...))
+            // → ditampilkan sebagai toast oleh Components/Toast.vue.
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
             ],
         ];
     }

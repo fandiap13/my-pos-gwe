@@ -6,15 +6,13 @@ import Toast from '@/Components/Toast.vue';
 import type { PageProps } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { Clock, History, LogOut } from '@lucide/vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
-// shiftIsActive disuplai halaman pemanggil lewat shared Inertia props
-// (ditambahkan Fase 1.3 saat EnsureShiftActive middleware dibuat).
-const props = defineProps<{
-    shiftIsActive?: boolean;
-}>();
-
+// shiftIsActive di-share oleh HandleInertiaRequests untuk semua request
+// (dihitung di backend) — halaman tidak perlu mengirimnya sendiri.
 const page = usePage<PageProps>();
+
+const shiftIsActive = computed(() => page.props.shiftIsActive === true);
 
 // Logout adalah aksi berisiko — wajib dialog konfirmasi, tidak langsung
 // eksekusi. Lihat docs/UI.md Prinsip Desain. Kasir dengan shift aktif
@@ -34,7 +32,6 @@ function logout() {
             <div class="flex items-center gap-3">
                 <span class="text-sm font-semibold text-text">POS App</span>
                 <span
-                    v-if="shiftIsActive !== undefined"
                     class="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium"
                     :class="
                         shiftIsActive
@@ -52,9 +49,16 @@ function logout() {
                     page.props.auth.user.name
                 }}</span>
                 <Link
-                    href="#"
+                    v-if="shiftIsActive"
+                    :href="route('kasir.shift.tutup')"
+                    class="rounded-control px-2 py-1.5 text-sm text-text-muted hover:bg-background hover:text-danger"
+                >
+                    Tutup Shift
+                </Link>
+                <Link
+                    :href="route('kasir.shift.riwayat')"
                     class="rounded-control p-1.5 text-text-muted hover:bg-background"
-                    aria-label="Riwayat Transaksi"
+                    aria-label="Riwayat Shift"
                 >
                     <History class="h-4 w-4" />
                 </Link>
@@ -79,7 +83,7 @@ function logout() {
             :show="showLogoutConfirm"
             title="Keluar dari akun?"
             :message="
-                props.shiftIsActive
+                shiftIsActive
                     ? 'Shift Anda masih aktif. Pastikan tidak ada transaksi yang menggantung sebelum keluar.'
                     : 'Anda akan keluar dari sesi ini dan perlu login kembali untuk melanjutkan.'
             "

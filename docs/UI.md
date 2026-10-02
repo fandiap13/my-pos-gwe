@@ -17,6 +17,7 @@
 | Buka Shift | Kasir | Form input modal awal kas, muncul otomatis kalau kasir belum punya shift aktif (gate sebelum bisa akses halaman kasir lain) |
 | Transaksi / Checkout | Kasir | Halaman utama: cari produk, keranjang, input pembayaran, cetak struk |
 | Riwayat Transaksi (saya) | Kasir | Daftar transaksi milik kasir yang login hari ini/filter tanggal, bisa cetak ulang struk |
+| Riwayat Shift (saya) | Kasir | Daftar shift milik kasir: waktu buka/tutup, modal awal, kas sistem vs kas fisik, selisih |
 | Tutup Shift | Kasir | Rekap kas sistem vs input kas fisik, selisih ditampilkan sebelum konfirmasi tutup |
 
 ### Mode Admin (`resources/js/Pages/Admin/`)
@@ -33,6 +34,7 @@
 | User — Tambah/Edit | Admin | Form user, set role, set `is_active` |
 | Riwayat Transaksi (semua) | Admin | Semua transaksi semua kasir, filter tanggal/kasir/status, aksi void |
 | Detail Transaksi | Admin, Kasir (miliknya) | Rincian item, info pembayaran, histori void (kalau ada) |
+| Riwayat Shift | Admin | Shift semua kasir, filter status & nama kasir: modal awal, kas sistem vs fisik, selisih |
 | Laporan Penjualan | Admin | Filter rentang tanggal, total penjualan, grafik ringkas, produk terlaris |
 | Laporan per Shift/Kasir | Admin | Rekap per shift: modal awal, total transaksi, selisih kas |
 | Pengaturan Toko | Admin | Nama toko, alamat, telepon, **zona waktu** (`store_settings`, lihat `docs/DATABASE.md`) |

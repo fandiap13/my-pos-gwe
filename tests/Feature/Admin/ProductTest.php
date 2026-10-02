@@ -212,3 +212,21 @@ test('kasir cannot access product routes', function () {
 
     $response->assertForbidden();
 });
+
+// Regression: resource yang dilempar mentah ke Inertia dibungkus jadi
+// {data: {...}} oleh jalur Responsable (bukan lewat ->resolve()), sehingga
+// halaman Edit membaca props.product.name = undefined. Lihat
+// docs/DECISIONS.md.
+test('product edit page receives flat product props', function () {
+    $admin = admin();
+    $product = Product::factory()->create(['name' => 'Kopi Susu']);
+
+    $response = $this->actingAs($admin)->get(route('admin.products.edit', $product));
+
+    $response->assertInertia(
+        fn ($page) => $page
+            ->component('Admin/Products/Edit')
+            ->where('product.name', 'Kopi Susu')
+            ->missing('product.data')
+    );
+});

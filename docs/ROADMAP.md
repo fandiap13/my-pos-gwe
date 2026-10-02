@@ -55,10 +55,10 @@ Komponen chart (StatCard, LineChart, dll) sengaja ditunda ke Fase 1.11 — lihat
 - [x] Halaman daftar produk dengan indikator stok menipis/habis
 
 ### 1.5 Shift Kasir
-- [ ] Buka shift (input modal awal kas)
-- [ ] Tutup shift (rekap kas sistem vs input fisik, tampilkan selisih)
-- [ ] Constraint satu shift aktif per kasir
-- [ ] Riwayat shift (admin & kasir)
+- [x] Buka shift (input modal awal kas)
+- [x] Tutup shift (rekap kas sistem vs input fisik, tampilkan selisih)
+- [x] Constraint satu shift aktif per kasir
+- [x] Riwayat shift (admin & kasir)
 
 ### 1.6 Transaksi (Checkout) — Fitur Inti
 - [ ] Implementasi sesuai `docs/features/checkout.md`

@@ -12,7 +12,7 @@ const page = usePage<PageProps>();
 <template>
     <Head title="Transaksi" />
 
-    <KasirLayout :shift-is-active="true">
+    <KasirLayout>
         <Card>
             <h1 class="text-lg font-semibold text-text">
                 Selamat datang, {{ page.props.auth.user.name }}
