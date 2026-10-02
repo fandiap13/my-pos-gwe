@@ -17,11 +17,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
-// Dev tool, bukan fitur produk — lihat docs/ROADMAP.md Fase 1.2.
+// Dev tool, bukan fitur produk — sengaja tanpa middleware auth supaya
+// bisa diakses langsung tanpa login. Hanya aktif di environment local
+// (tidak pernah ter-register di production). Lihat docs/ROADMAP.md Fase 1.2.
 if (app()->environment('local')) {
     Route::get('/dev/components', function () {
         return Inertia::render('ComponentShowcase');
-    })->middleware('auth')->name('dev.components');
+    })->name('dev.components');
 }
 
 require __DIR__.'/auth.php';
