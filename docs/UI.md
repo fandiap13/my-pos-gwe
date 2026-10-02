@@ -83,7 +83,18 @@
 
 ## Hal yang Masih Perlu Diputuskan
 - Modal inline vs halaman terpisah untuk tambah kategori cepat dari form produk.
-- Warna/branding utama aplikasi (saat ini belum ditentukan) — isi kalau sudah ada preferensi atau logo toko.
+
+## Design Tokens
+> **Diisi sebelum mengerjakan `docs/ROADMAP.md` Fase 1.2** (sebelum halaman Login dibuat), supaya semua halaman berikutnya konsisten sejak awal — bukan restyle ulang di akhir. Diterapkan ke `tailwind.config.js`.
+
+- **Warna primer** (tombol utama, link aktif, highlight): `#` — *perlu diisi*
+- **Warna sekunder** (tombol kedua, aksen): `#` — *perlu diisi*
+- **Warna status badge:**
+  - Sukses / stok aman: `#` — *perlu diisi*
+  - Warning / stok menipis: `#` — *perlu diisi*
+  - Bahaya / stok habis, voided: `#` — *perlu diisi*
+- **Font** (kalau bukan default Tailwind/system font): `` — *perlu diisi*
+- **Logo toko** (kalau ada, untuk header/struk): — *perlu diisi*
 
 ## Referensi Visual
 - (tempel link mockup/Figma/screenshot referensi di sini)

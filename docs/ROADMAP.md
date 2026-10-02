@@ -31,6 +31,7 @@ p artisan pest:install` kalau belum ikut starter kit)
 - [x] Model Eloquent untuk semua tabel di atas, pakai trait `HasUuids`, relasi sesuai `docs/DATABASE.md`
 
 ### 1.2 Autentikasi & Role
+- [ ] **Tentukan & terapkan design tokens** (warna primer/sekunder, warna status badge, font) ke `tailwind.config.js` — dilakukan SEBELUM halaman Login dibuat, supaya tidak restyle ulang nanti. Lihat `docs/UI.md`
 - [ ] Implementasi sesuai `docs/features/auth-login.md`
 - [ ] Middleware `role:admin` / `role:kasir`
 - [ ] Middleware `EnsureShiftActive` untuk route kasir
