@@ -38,7 +38,12 @@ class ProductController extends Controller
             ->withQueryString();
 
         return Inertia::render('Admin/Products/Index', [
-            'products' => ProductResource::collection($products),
+            // through() mempertahankan shape paginator standar Laravel
+            // (data/links/current_page di level yang sama) sambil
+            // mentransform tiap item lewat ProductResource. Dipakai
+            // flat (bukan dibungkus ResourceCollection) supaya sesuai
+            // tipe frontend Paginated<T> — lihat docs/DECISIONS.md.
+            'products' => $products->through(fn (Product $product) => (new ProductResource($product))->resolve()),
             'categories' => CategoryResource::collection(Category::orderBy('name')->get()),
             'filters' => $request->only(['search', 'category_id']),
         ]);

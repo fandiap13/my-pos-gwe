@@ -10,6 +10,22 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 
 ---
 
+### [2026-10-02] Bug fix: halaman Produk blank karena shape paginator ganda-bungkus
+- **Keputusan:** Untuk halaman list yang dipaginasi, controller WAJIB kirim paginator flat ke Inertia (`$query->paginate()->through(fn ($item) => (new XResource($item))->resolve())`), BUKAN `XResource::collection($paginator)`. Frontend (`Paginated<T>` di `types/pagination.ts`, dipakai `Pagination.vue`) mengasumsikan `current_page`, `data`, `last_page`, `links`, dll ada di level yang sama — bukan nested di `meta`.
+- **Alasan:** `ProductController@index` awalnya pakai `ProductResource::collection($products)` pada hasil `paginate()`. Laravel Resource Collection memisahkan pagination meta ke key `meta`/`links` terpisah dari `data`, BUKAN shape flat seperti `LengthAwarePaginator::toArray()` biasa. Akibatnya props `products` di Inertia punya shape `{ data: [...], links: {...}, meta: {...} }`, tapi `Index.vue` ditulis mengasumsikan `{ data: { data: [...], links: [...], current_page, ... } }` (mengira seluruh resource collection ada di `products.data`). Mismatch ini membuat `products.data.data` jadi `undefined`, `.length` throw TypeError di tengah render, dan Vue gagal mount — hasilnya halaman benar-benar blank tanpa error di server log (request tetap 200, errornya murni di JS browser).
+- **Kenapa tidak ketangkap test sebelumnya:** Test awal cuma `assertOk()` (cek status HTTP), tidak pernah memverifikasi struktur data Inertia props. Diperbaiki dengan menambah test `assertInertia()` yang cek shape eksplisit (`has('products.data', N)`, `missing('products.data.data')`) — lihat `tests/Feature/Admin/ProductTest.php`.
+- **Alternatif yang ditolak:** Ubah `Paginated<T>` & `Pagination.vue` supaya cocok dengan shape `ResourceCollection` (`meta`/`links` terpisah) — ditolak karena `Pagination.vue` sudah dipakai dengan asumsi shape flat, mengubahnya butuh audit ulang semua pemakaian; `through()` lebih simpel dan tetap dapat transformasi field via Resource.
+- **Dampak — WAJIB diikuti untuk semua halaman list baru (Kategori di Fase 1.4 TIDAK terpaginasi jadi tidak kena bug ini, tapi Fase 1.9 Stok, Fase 1.8 Riwayat Transaksi, dll SEMUA perlu pola ini):**
+  ```php
+  $items = Model::query()->paginate(15)->withQueryString();
+  return Inertia::render('Admin/Xxx/Index', [
+      'items' => $items->through(fn ($item) => (new XResource($item))->resolve()),
+  ]);
+  ```
+  Di frontend: `defineProps<{ items: Paginated<X> }>()`, akses `items.data` (BUKAN `items.data.data`), `<Pagination :paginated="items" />` (BUKAN `items.data`).
+
+---
+
 ### [2026-10-02] Bug fix: Input.vue type="number" diam-diam emit string
 - **Keputusan:** `Input.vue` sekarang convert nilai ke `Number()` sebelum emit saat `type="number"`; tipe `update:modelValue` diubah jadi `string | number`.
 - **Alasan:** Ditemukan saat membangun form Produk (stok awal, stok minimum) — `v-model` ke `ref<number>` diam-diam menerima string runtime (`"5"` bukan `5`) karena `handleInput` lama selalu emit `event.target.value` (selalu string), meski TypeScript tidak menangkap ini (prop `modelValue?: string | number` terlalu longgar). Komponen lain yang hanya pakai `type="search"`/`text` (`ProductSearch.vue`) tidak terpengaruh — perbaikan hanya menyesuaikan cast di situ.

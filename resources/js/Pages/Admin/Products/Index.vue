@@ -22,7 +22,7 @@ interface ProductWithStatus extends Product {
 }
 
 const props = defineProps<{
-    products: { data: Paginated<ProductWithStatus> };
+    products: Paginated<ProductWithStatus>;
     categories: { data: Category[] };
     filters: { search?: string; category_id?: string };
 }>();
@@ -107,9 +107,9 @@ function formatPrice(value: number) {
                 </div>
             </div>
 
-            <Card :padded="products.data.data.length === 0">
+            <Card :padded="products.data.length === 0">
                 <EmptyState
-                    v-if="products.data.data.length === 0"
+                    v-if="products.data.length === 0"
                     :icon="Package"
                     title="Belum ada produk"
                     description="Tambahkan produk pertama untuk mulai berjualan."
@@ -134,7 +134,7 @@ function formatPrice(value: number) {
                         </template>
                         <template #body>
                             <tr
-                                v-for="product in products.data.data"
+                                v-for="product in products.data"
                                 :key="product.id"
                             >
                                 <td class="font-medium">{{ product.name }}</td>
@@ -188,7 +188,7 @@ function formatPrice(value: number) {
                     </Table>
 
                     <div class="p-4">
-                        <Pagination :paginated="products.data" />
+                        <Pagination :paginated="products" />
                     </div>
                 </template>
             </Card>

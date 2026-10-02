@@ -19,6 +19,30 @@ test('admin can view product list', function () {
     $response->assertOk();
 });
 
+// Memverifikasi SHAPE data Inertia props, bukan cuma status 200 — bug
+// sebelumnya (products dibungkus ganda jadi products.data.data di
+// frontend, padahal controller kirim products.data) lolos dari test
+// assertOk() biasa tapi membuat halaman blank di browser. Lihat
+// docs/DECISIONS.md.
+test('product index returns flat paginator shape matching frontend Paginated<T>', function () {
+    $admin = admin();
+    Product::factory()->count(3)->create();
+
+    $response = $this->actingAs($admin)->get(route('admin.products.index'));
+
+    $response->assertInertia(
+        fn ($page) => $page
+            ->component('Admin/Products/Index')
+            ->has('products.data', 3)
+            ->has('products.current_page')
+            ->has('products.last_page')
+            ->has('products.total')
+            ->has('products.links')
+            ->has('products.data.0.stock_status')
+            ->missing('products.data.data')
+    );
+});
+
 test('admin can create a product with initial stock recorded as stock movement', function () {
     $admin = admin();
     $category = Category::factory()->create();

@@ -66,6 +66,7 @@ Baca `docs/DECISIONS.md` secara lengkap — berisi keputusan arsitektur yang sud
 14. Stok produk HANYA boleh berubah lewat `stock_movements` (`StockMovement::create()`), tidak pernah lewat `Product::update(['stock' => ...])` langsung — form Edit Produk sengaja tidak punya field stok
 15. Kategori yang masih punya produk/subkategori anak tidak bisa dihapus — lihat `DeleteCategoryAction`, jangan hapus validasi ini
 16. Tambah kategori dari form Produk pakai halaman terpisah (`/admin/categories/create`), bukan modal inline — ini keputusan final, bukan sementara
+17. **Halaman list yang dipaginasi WAJIB kirim paginator flat ke Inertia** (`$query->paginate()->through(fn ($item) => (new XResource($item))->resolve())`), JANGAN `XResource::collection($paginator)` — yang kedua membungkus data jadi `{data, links, meta}` nested, tidak cocok dengan `Paginated<T>`/`Pagination.vue` yang mengasumsikan shape flat. Ini pernah bikin halaman Produk blank total (lihat `docs/DECISIONS.md`) — selalu tambahkan test `assertInertia()` yang cek shape untuk halaman list baru, jangan cuma `assertOk()`.
 
 ## Cara Melanjutkan (Prompt Starter untuk AI Baru)
 
