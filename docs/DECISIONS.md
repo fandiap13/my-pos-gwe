@@ -10,6 +10,46 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 
 ---
 
+### [2026-10-02] Bug fix: Input.vue type="number" diam-diam emit string
+- **Keputusan:** `Input.vue` sekarang convert nilai ke `Number()` sebelum emit saat `type="number"`; tipe `update:modelValue` diubah jadi `string | number`.
+- **Alasan:** Ditemukan saat membangun form Produk (stok awal, stok minimum) — `v-model` ke `ref<number>` diam-diam menerima string runtime (`"5"` bukan `5`) karena `handleInput` lama selalu emit `event.target.value` (selalu string), meski TypeScript tidak menangkap ini (prop `modelValue?: string | number` terlalu longgar). Komponen lain yang hanya pakai `type="search"`/`text` (`ProductSearch.vue`) tidak terpengaruh — perbaikan hanya menyesuaikan cast di situ.
+- **Alternatif yang ditolak:** Biarkan backend yang menangani coercion string→int (Laravel validation `integer` cukup toleran ke numeric string) — ditolak karena membiarkan state frontend tidak konsisten dengan tipenya sendiri, berisiko bug di tempat lain yang mengasumsikan `number` murni (kalkulasi, format).
+- **Dampak:** Semua pemakaian `<Input type="number">` sekarang `v-model` ke `number` secara aman. `ProductSearch.vue` ditambah cast eksplisit `String(value)` karena konsumsinya murni `type="search"`.
+
+---
+
+### [2026-10-02] Bug fix: Select.vue placeholder tidak bisa dipilih balik
+- **Keputusan:** `Select.vue` prop `modelValue` diubah jadi `string | null`, placeholder option tidak lagi `disabled` (bisa dipilih balik untuk reset ke `null`).
+- **Alasan:** Ditemukan saat membangun field "Parent (opsional)" di form Kategori/Produk — placeholder lama (`<option value="" disabled>`) membuat user tidak bisa mengosongkan pilihan setelah memilih sesuatu (misal: salah pilih kategori, tidak bisa kembali ke "Tanpa kategori" tanpa reload). Opsi kosong (`value=""`) di-translate jadi `null` saat emit, konsisten dengan kolom nullable di database (`category_id`, `parent_id`).
+- **Alternatif yang ditolak:** Tambah tombol "X" terpisah untuk clear selection — ditolak, kurang idiomatis untuk native `<select>` dan menambah kompleksitas UI yang tidak perlu.
+- **Dampak:** Semua pemakaian `Select` dengan field nullable (`category_id`, `parent_id`) sekarang `v-model` ke `ref<string | null>`, bukan `ref<string>` dengan workaround string kosong.
+
+---
+
+### [2026-10-02] Stok awal produk via stock_movements, bukan kolom stock langsung
+- **Keputusan:** Form "Tambah Produk" punya field `initial_stock` terpisah dari kolom `stock`. `CreateProductAction` insert `stock_movements` type `in` (kalau `initial_stock > 0`) di dalam `DB::transaction()` yang sama dengan `Product::create()`. Form "Edit Produk" TIDAK punya field stok sama sekali — perubahan stok produk yang sudah ada hanya lewat Stok > Penyesuaian Manual (Fase 1.9).
+- **Alasan:** Sesuai `AGENTS.md` & `docs/DATABASE.md`: `stock_movements` adalah sumber kebenaran tunggal, `products.stock` murni cache. Kalau form Produk mengisi `stock` langsung, akan ada dua jalur penulisan stok (form produk vs `stock_movements`) yang bisa saling tidak sinkron.
+- **Alternatif yang ditolak:** Isi `stock` langsung saat create (lebih simpel tapi melanggar aturan arsitektur yang sudah final); izinkan edit stok dari form Produk (ditolak — stok yang sudah berjalan harus melalui jalur `adjustment` yang tercatat alasannya, bukan overwrite diam-diam).
+- **Dampak:** `StockMovementObserver` (Fase 1.1) otomatis menghitung ulang `products.stock` setelah insert movement — tidak ada kode tambahan untuk update cache secara manual. Lihat `app/Actions/Product/CreateProductAction.php`.
+
+---
+
+### [2026-10-02] Kategori: blokir hapus kalau masih ada produk/subkategori
+- **Keputusan:** `DeleteCategoryAction` menolak soft-delete kategori (lempar `ValidationException`) kalau `category->products()->exists()` atau `category->children()->exists()`.
+- **Alasan:** FK `nullOnDelete` di migration (Fase 1.1) hanya berlaku untuk hard delete, TIDAK terpicu untuk soft delete — kalau tidak divalidasi di Action, kategori yang masih dipakai produk bisa "hilang" dari tampilan (soft-deleted) padahal produk & subkategorinya masih menunjuk ke kategori itu, membingungkan admin.
+- **Alternatif yang ditolak:** Cascade — hapus/pindahkan produk & subkategori otomatis saat kategori dihapus (terlalu destruktif untuk aksi yang seharusnya eksplisit); biarkan tanpa validasi (ditolak, sesuai keputusan user eksplisit).
+- **Dampak:** Pesan error ditampilkan lewat `session('errors')` key `category` (bukan field form biasa), ditangkap di `Admin/Categories/Index.vue` lewat flash message. Lihat `app/Actions/Category/DeleteCategoryAction.php`.
+
+---
+
+### [2026-10-02] Tambah kategori dari form Produk: halaman terpisah, bukan modal inline
+- **Keputusan:** Item terbuka di `docs/UI.md` ("modal inline vs halaman terpisah") diputuskan: halaman terpisah. Kalau kategori yang diinginkan belum ada, admin buka `/admin/categories/create` di tab/halaman lain, lalu kembali ke form Produk (kategori baru otomatis muncul di dropdown setelah reload/kembali).
+- **Alasan:** Lebih sederhana diimplementasi sekarang. Modal inline (dengan refresh list kategori di form produk tanpa reload) bisa ditambah nanti sebagai polish kalau terasa perlu, tidak menghalangi fungsi inti CRUD Produk/Kategori selesai dulu.
+- **Alternatif yang ditolak:** Modal inline sekarang — ditolak untuk sekarang, kompleksitas (state sinkronisasi antar form) tidak sepadan di tahap ini.
+- **Dampak:** Tidak ada kode modal/inline-create di form Produk. `docs/UI.md` bagian "Hal yang Masih Perlu Diputuskan" dikosongkan dari item ini.
+
+---
+
 ### [2026-10-02] Redirect login terpusat di DetermineLoginRedirectAction
 - **Keputusan:** Logic "ke mana user diarahkan setelah login/verifikasi" (admin → dashboard, kasir dengan shift → transaksi, kasir tanpa shift → buka shift) dipusatkan di satu class `app/Actions/Auth/DetermineLoginRedirectAction.php`, dipanggil dari `AuthenticatedSessionController` DAN 4 controller Breeze bawaan lain yang semula hardcode `route('dashboard')` (`ConfirmablePasswordController`, `EmailVerificationNotificationController`, `EmailVerificationPromptController`, `VerifyEmailController`).
 - **Alasan:** `docs/features/auth-login.md` "Catatan Teknis" menyarankan logic ini di satu tempat. `redirect()->intended()` bawaan Breeze tidak dipakai lagi — tujuan redirect SELALU ditentukan oleh role + status shift, bukan URL yang sempat dicoba diakses sebelum login, karena untuk POS, kasir/admin yang login seharusnya selalu masuk ke area kerjanya, bukan ke halaman acak yang kebetulan coba diakses saat belum login.

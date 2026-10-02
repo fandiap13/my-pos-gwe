@@ -49,8 +49,16 @@ const menu: (MenuItem | MenuGroup)[] = [
         label: 'Produk',
         icon: Package,
         children: [
-            { label: 'Daftar Produk', icon: Package, href: '#' },
-            { label: 'Kategori', icon: Tags, href: '#' },
+            {
+                label: 'Daftar Produk',
+                icon: Package,
+                href: route('admin.products.index'),
+            },
+            {
+                label: 'Kategori',
+                icon: Tags,
+                href: route('admin.categories.index'),
+            },
         ],
     },
     { label: 'Stok', icon: Warehouse, href: '#' },

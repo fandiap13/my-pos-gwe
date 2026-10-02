@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ProductController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,4 +16,12 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/', function () {
             return Inertia::render('Admin/Dashboard');
         })->name('dashboard');
+
+        Route::resource('categories', CategoryController::class)
+            ->except(['show'])
+            ->parameters(['categories' => 'category']);
+
+        Route::resource('products', ProductController::class)
+            ->except(['show'])
+            ->parameters(['products' => 'product']);
     });

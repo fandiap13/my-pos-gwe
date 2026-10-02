@@ -95,7 +95,6 @@ Dibangun di Fase 1.2 (`docs/ROADMAP.md`), sebelum halaman fitur dibuat. Semua di
 **Aturan:** setiap komponen punya state default/hover/focus/active/disabled/loading/error (+ empty state kalau relevan). Cek role & shift aktif kasir ditangani middleware Laravel (`role:admin`, `EnsureShiftActive` — lihat `AGENTS.md`), bukan komponen Vue terpisah.
 
 ## Hal yang Masih Perlu Diputuskan
-- Modal inline vs halaman terpisah untuk tambah kategori cepat dari form produk.
 - Logo toko (untuk header & struk).
 - Dark mode — belum dijadwalkan; token dibuat sebagai CSS variable/Tailwind theme supaya bisa ditambah nanti tanpa restyle.
 

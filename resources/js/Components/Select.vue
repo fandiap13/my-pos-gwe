@@ -8,42 +8,42 @@ export interface SelectOption {
 
 withDefaults(
     defineProps<{
-        modelValue?: string;
+        modelValue?: string | null;
         options: SelectOption[];
         placeholder?: string;
         disabled?: boolean;
         invalid?: boolean;
     }>(),
     {
+        modelValue: null,
         disabled: false,
         invalid: false,
     },
 );
 
-defineEmits<{
-    'update:modelValue': [value: string];
+const emit = defineEmits<{
+    'update:modelValue': [value: string | null];
 }>();
+
+function handleChange(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+
+    emit('update:modelValue', value === '' ? null : value);
+}
 </script>
 
 <template>
     <div class="relative">
         <select
-            :value="modelValue"
+            :value="modelValue ?? ''"
             :disabled="disabled"
             class="w-full appearance-none rounded-control border bg-surface px-3 py-2 pr-9 text-base text-text focus:outline-none focus:ring-2 focus:ring-primary-dark disabled:cursor-not-allowed disabled:bg-background disabled:text-text-faint"
             :class="
                 invalid ? 'border-danger focus:ring-danger' : 'border-border'
             "
-            @change="
-                $emit(
-                    'update:modelValue',
-                    ($event.target as HTMLSelectElement).value,
-                )
-            "
+            @change="handleChange"
         >
-            <option v-if="placeholder" value="" disabled>
-                {{ placeholder }}
-            </option>
+            <option v-if="placeholder" value="">{{ placeholder }}</option>
             <option
                 v-for="option in options"
                 :key="option.value"

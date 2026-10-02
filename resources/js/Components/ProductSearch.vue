@@ -15,9 +15,15 @@ withDefaults(
     },
 );
 
-defineEmits<{
+const emit = defineEmits<{
     'update:modelValue': [value: string];
 }>();
+
+// Input type="search" selalu emit string (lihat Input.vue handleInput),
+// konversi number hanya terjadi untuk type="number".
+function handleUpdate(value: string | number) {
+    emit('update:modelValue', String(value));
+}
 </script>
 
 <template>
@@ -25,6 +31,6 @@ defineEmits<{
         type="search"
         :model-value="modelValue"
         :placeholder="placeholder"
-        @update:model-value="$emit('update:modelValue', $event)"
+        @update:model-value="handleUpdate"
     />
 </template>

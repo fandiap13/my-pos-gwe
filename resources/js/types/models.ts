@@ -1,6 +1,15 @@
 // Tipe model domain, mencerminkan shape dari Http/Resources Laravel —
-// lihat AGENTS.md. Ditambah bertahap seiring fitur baru dikerjakan;
-// untuk sekarang baru Product (dipakai komponen khusus POS Fase 1.2).
+// lihat AGENTS.md. Ditambah bertahap seiring fitur baru dikerjakan.
+
+export interface Category {
+    id: string;
+    parent_id: string | null;
+    parent_name: string | null;
+    name: string;
+    slug: string;
+    products_count: number | null;
+    children_count: number | null;
+}
 
 export interface Product {
     id: string;

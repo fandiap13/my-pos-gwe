@@ -6,10 +6,10 @@
 
 ## Status Saat Ini
 
-**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.3 (Autentikasi & Role)**.
-**Belum dikerjakan:** 1.4 (Manajemen Produk & Kategori) dan seterusnya — lihat `docs/ROADMAP.md`.
+**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.4 (Manajemen Produk & Kategori)**.
+**Belum dikerjakan:** 1.5 (Shift Kasir) dan seterusnya — lihat `docs/ROADMAP.md`.
 
-**Commit terakhir:** lihat `git log --oneline -1` — commit terakhir berjudul "feat: Fase 1.3 — autentikasi, role, redirect berdasarkan role & shift".
+**Commit terakhir:** lihat `git log --oneline -1` — commit terakhir berjudul "feat: Fase 1.4 — CRUD Kategori & Produk (Admin)".
 
 ## Yang Sudah Jadi (Verified, Bukan Asumsi)
 
@@ -31,14 +31,20 @@
 - Redirect setelah login terpusat di `app/Actions/Auth/DetermineLoginRedirectAction.php` — admin ke dashboard, kasir dengan shift ke transaksi, kasir tanpa shift ke buka shift. Dipakai juga oleh 4 controller Breeze (password confirm, email verification) yang semula hardcode `route('dashboard')` (route itu sudah dihapus)
 - Validasi `is_active` di `LoginRequest` — akun nonaktif ditolak login meski kredensial benar
 - Pages placeholder: `Pages/Admin/Dashboard.vue`, `Pages/Kasir/Transaksi.vue`, `Pages/Kasir/Shift/Buka.vue` (isi sungguhan menyusul di Fase 1.5/1.6/1.11)
-- 32 test lulus (termasuk `RoleAccessTest` baru: guest/role salah diblokir, shift aktif/tidak aktif, dll), Pint & ESLint clean
+- CRUD Kategori penuh (`Admin/Categories/{Index,Create,Edit}.vue`): self-referencing parent, validasi anti-siklus, blokir hapus kalau masih ada produk/subkategori — lihat `docs/DECISIONS.md`
+- CRUD Produk penuh (`Admin/Products/{Index,Create,Edit}.vue`): search + filter kategori + pagination di Index, validasi SKU/barcode unik, badge status stok (aman/menipis/habis)
+- Stok awal produk dicatat via `stock_movements` (bukan isi kolom `stock` langsung) lewat `CreateProductAction` — lihat `docs/DECISIONS.md`. Form Edit Produk TIDAK punya field stok sama sekali (perubahan stok nanti lewat Penyesuaian Manual, Fase 1.9)
+- Bug fix `Input.vue` (`type="number"` dulu diam-diam emit string, sekarang emit number) dan `Select.vue` (placeholder dulu tidak bisa dipilih balik untuk reset ke `null`) — lihat `docs/DECISIONS.md`, berdampak ke semua pemakaian komponen ini di seluruh app
+- `AdminLayout` menu sidebar: "Dashboard", "Daftar Produk", "Kategori" sekarang route nyata; sisanya (Stok, Transaksi, Laporan, Pengguna, Pengaturan) masih `href="#"`
+- 57 test lulus (12 CategoryTest + 13 ProductTest baru), Pint & ESLint clean
 
 ## Yang BELUM Ada (Jangan Diasumsikan Sudah Jadi)
 
-- **Belum ada halaman fitur POS sungguhan** (CRUD produk, checkout, shift form, dll) — `Pages/Admin/` dan `Pages/Kasir/` baru berisi 1 halaman placeholder masing-masing, belum fitur nyata.
+- **Belum ada checkout/shift sungguhan** — `Pages/Kasir/` masih 2 halaman placeholder (Transaksi, Shift/Buka), isi sungguhan menyusul Fase 1.5 (Shift) dan 1.6 (Checkout).
 - Komponen chart (`StatCard`, `LineChart`, `BarChart`, dll) di `docs/UI.md` **sengaja belum dibuat** — ditunda ke Fase 1.11, lihat `docs/DECISIONS.md`. Chart.js/`vue-chartjs` juga belum ter-install.
-- Tidak ada `CreateTransactionAction`, tidak ada checkout sungguhan, tidak ada form shift sungguhan, tidak ada CRUD produk/kategori dari sisi UI.
-- `AdminLayout` menu sidebar: hanya "Dashboard" yang route-nya nyata (`href="route('admin.dashboard')"`), sisanya (Produk, Stok, Transaksi, Laporan, Pengguna, Pengaturan) masih `href="#"` — diisi route sungguhan saat fase masing-masing dikerjakan.
+- Tidak ada `CreateTransactionAction`, tidak ada checkout sungguhan, tidak ada form shift sungguhan.
+- Tidak ada halaman **Stok — Riwayat Pergerakan** / **Penyesuaian Manual** (Fase 1.9) — `stock_movements` sudah bisa diisi lewat `CreateProductAction`, tapi belum ada UI untuk melihat riwayatnya atau input manual (barang masuk/koreksi) di luar saat create produk.
+- Modal inline untuk tambah kategori cepat dari form Produk **sengaja tidak dibuat** (halaman terpisah dipilih) — lihat `docs/DECISIONS.md`.
 
 ## Keputusan Penting yang HARUS Dibaca Sebelum Lanjut
 
@@ -57,6 +63,9 @@ Baca `docs/DECISIONS.md` secara lengkap — berisi keputusan arsitektur yang sud
 11. Icon = `@lucide/vue` (bukan `lucide-vue-next`, versi lama sudah deprecated — jangan install ulang package lama ini)
 12. Redirect setelah login SELALU terpusat di `DetermineLoginRedirectAction` — jangan pakai `redirect()->intended()` atau hardcode `route('dashboard')` di controller manapun (route itu sudah tidak ada)
 13. `shift.active` middleware TIDAK BOLEH dipasang di route `kasir.shift.buka` — akan menyebabkan redirect loop (kasir tanpa shift tidak bisa membuka shift-nya sendiri)
+14. Stok produk HANYA boleh berubah lewat `stock_movements` (`StockMovement::create()`), tidak pernah lewat `Product::update(['stock' => ...])` langsung — form Edit Produk sengaja tidak punya field stok
+15. Kategori yang masih punya produk/subkategori anak tidak bisa dihapus — lihat `DeleteCategoryAction`, jangan hapus validasi ini
+16. Tambah kategori dari form Produk pakai halaman terpisah (`/admin/categories/create`), bukan modal inline — ini keputusan final, bukan sementara
 
 ## Cara Melanjutkan (Prompt Starter untuk AI Baru)
 
@@ -71,7 +80,7 @@ Baca file-file ini secara berurutan sebelum mulai kerja apa pun:
 5. docs/DATABASE.md, docs/PRD.md, docs/UI.md — konteks produk sesuai kebutuhan
 6. docs/features/*.md — spec detail kalau mengerjakan fitur yang sudah ada filenya
 
-Lanjutkan dari Fase 1.4 (Manajemen Produk & Kategori) di docs/ROADMAP.md.
+Lanjutkan dari Fase 1.5 (Shift Kasir) di docs/ROADMAP.md.
 Jalankan `php artisan test` setelah tiap perubahan, jangan nyatakan selesai
 tanpa verifikasi nyata (migration benar-benar jalan, test benar-benar lulus).
 ```

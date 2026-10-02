@@ -17,9 +17,22 @@ const props = withDefaults(
     },
 );
 
-defineEmits<{
-    'update:modelValue': [value: string];
+const emit = defineEmits<{
+    'update:modelValue': [value: string | number];
 }>();
+
+// type="number" mengirim number, bukan string — supaya v-model ke
+// ref<number> (mis. harga, stok) tidak diam-diam jadi string runtime.
+function handleInput(event: Event) {
+    const raw = (event.target as HTMLInputElement).value;
+
+    if (props.type === 'number') {
+        emit('update:modelValue', raw === '' ? 0 : Number(raw));
+        return;
+    }
+
+    emit('update:modelValue', raw);
+}
 
 // Toggle lihat/sembunyikan password — berlaku otomatis di semua field
 // type="password" (Login, Reset Password, ganti password, dll).
@@ -52,12 +65,7 @@ const resolvedType = computed(() => {
                 type === 'search' ? 'pl-9' : '',
                 type === 'password' ? 'pr-9' : '',
             ]"
-            @input="
-                $emit(
-                    'update:modelValue',
-                    ($event.target as HTMLInputElement).value,
-                )
-            "
+            @input="handleInput"
         />
         <button
             v-if="type === 'password'"

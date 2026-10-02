@@ -49,10 +49,10 @@ Komponen chart (StatCard, LineChart, dll) sengaja ditunda ke Fase 1.11 — lihat
 - [x] Redirect login sesuai role + cek shift aktif
 
 ### 1.4 Manajemen Produk & Kategori (Admin)
-- [ ] CRUD Kategori (termasuk pilih parent untuk subkategori)
-- [ ] CRUD Produk (kategori, SKU/barcode, harga jual, harga modal, stok awal, stok minimum)
-- [ ] Validasi unik SKU/barcode
-- [ ] Halaman daftar produk dengan indikator stok menipis/habis
+- [x] CRUD Kategori (termasuk pilih parent untuk subkategori)
+- [x] CRUD Produk (kategori, SKU/barcode, harga jual, harga modal, stok awal, stok minimum)
+- [x] Validasi unik SKU/barcode
+- [x] Halaman daftar produk dengan indikator stok menipis/habis
 
 ### 1.5 Shift Kasir
 - [ ] Buka shift (input modal awal kas)
