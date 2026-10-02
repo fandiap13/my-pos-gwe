@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\StockMovement;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
@@ -38,5 +40,30 @@ class ProductSeeder extends Seeder
                 'name' => 'Produk Stok Menipis (contoh)',
             ]);
         }
+
+        $this->recordInitialStockMovements();
+    }
+
+    /**
+     * Factory mengisi kolom products.stock langsung tanpa riwayat.
+     * Karena products.stock hanyalah cache agregat stock_movements
+     * (AGENTS.md), tanpa baris 'in' ini transaksi pertama pada produk
+     * seed akan membuat observer menghitung ulang stok menjadi negatif.
+     */
+    private function recordInitialStockMovements(): void
+    {
+        $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
+
+        Product::query()
+            ->where('stock', '>', 0)
+            ->whereDoesntHave('stockMovements')
+            ->each(function (Product $product) use ($admin) {
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'type' => StockMovement::TYPE_IN,
+                    'quantity' => $product->stock,
+                    'created_by' => $admin->id,
+                ]);
+            });
     }
 }

@@ -125,7 +125,7 @@ Satu row = satu sesi kerja kasir, dari buka sampai tutup. Lihat PRD §6 (satu ka
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | id | uuid, PK | |
-| transaction_number | string, unique | Nomor struk, format disarankan `TRX-YYYYMMDD-XXXX` (human-readable, tetap dibutuhkan terpisah dari `id` UUID karena UUID tidak enak ditulis/dibaca di struk fisik) |
+| transaction_number | string, unique | Nomor struk **`TRX-YYYYMMDD-XXXX`, sekuensial per hari zona waktu toko** (human-readable, tetap dibutuhkan terpisah dari `id` UUID karena UUID tidak enak ditulis/dibaca di struk fisik). Di-generate dalam `DB::transaction()` dengan `lockForUpdate()` row `store_settings` — lihat `docs/DECISIONS.md` (Fase 1.6) |
 | user_id | uuid, FK → users.id | Kasir yang melayani |
 | shift_id | uuid, FK → shifts.id | Shift saat transaksi dibuat |
 | subtotal | integer | Jumlah sebelum diskon/pajak |
@@ -169,7 +169,8 @@ Sumber kebenaran untuk stok (lihat `AGENTS.md`). Kolom `stock` di `products` han
 | created_at, updated_at | timestamp | |
 
 **Catatan implementasi:**
-- Stok produk saat ini = `SUM(quantity WHERE type IN ('in','adjustment','void_return')) - SUM(quantity WHERE type = 'out')`, atau cukup simpan signed di query aggregate — detail dibahas saat implementasi.
+- Kolom `products.stock` dihitung ulang otomatis oleh `StockMovementObserver` setiap ada row baru — sudah diputuskan & diimplementasi (lihat `docs/DECISIONS.md`, "Cache products.stock dihitung ulang via Model Observer"). Rumusnya: `SUM(type IN 'in','adjustment','void_return') - SUM(type = 'out')`.
+- **Produk seed/factory:** factory mengisi kolom `stock` langsung tanpa riwayat; `ProductSeeder` menambahkan row `in` awal supaya cache tetap konsisten dan transaksi pertama tidak membuat stok negatif (lihat `docs/DECISIONS.md`, Fase 1.6). Test yang menjalankan observer pada produk factory wajib melakukan hal yang sama.
 - Checkout sukses → insert `stock_movements` type `out` per item (dalam `DB::transaction()` yang sama dengan insert transaksi, sesuai `AGENTS.md`).
 - Void transaksi → insert `stock_movements` type `void_return` untuk mengembalikan stok (PRD §6), bukan menghapus row `out` yang lama (riwayat tetap utuh).
 
@@ -201,7 +202,5 @@ Sumber kebenaran untuk stok (lihat `AGENTS.md`). Kolom `stock` di `products` han
 - `stock_movements.reference_type` + `reference_id` — composite index (polymorphic lookup).
 
 ## Hal yang Masih Perlu Diputuskan
-- Apakah `transaction_number` digenerate sekuensial per hari (`TRX-20261002-0001`)? Ini tetap dibutuhkan terpisah dari `id` (UUID) karena UUID tidak praktis ditulis di struk fisik. Format sekuensial butuh locking saat generate (hindari race condition di `DB::transaction()`).
-- Kolom `stock` di `products` — generated/cached kapan? Opsi: dihitung ulang tiap ada `stock_movements` baru (event/observer), atau dihitung on-the-fly tiap request (lebih lambat tapi selalu akurat). Perlu diputuskan saat implementasi Fase 1.
 - Diskon & pajak (PRD §6, masih `perlu diisi`) belum punya kolom di `transactions`/`transaction_items` — menyusul setelah aturan bisnisnya final.
 

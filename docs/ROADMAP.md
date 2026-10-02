@@ -61,14 +61,14 @@ Komponen chart (StatCard, LineChart, dll) sengaja ditunda ke Fase 1.11 — lihat
 - [x] Riwayat shift (admin & kasir)
 
 ### 1.6 Transaksi (Checkout) — Fitur Inti
-- [ ] Implementasi sesuai `docs/features/checkout.md`
-- [ ] Search produk (nama/SKU) + input barcode scanner
-- [ ] Keranjang: tambah/kurang quantity, hitung total real-time
-- [ ] Blokir tambah produk stok 0 ke keranjang
-- [ ] Form pembayaran (cash/transfer/debit), hitung kembalian otomatis
-- [ ] `CreateTransactionAction`: insert transaction + items + stock_movements dalam satu `DB::transaction()`
-- [ ] Generate `transaction_number` unik (tangani race condition)
-- [ ] Update cache `products.stock` setelah transaksi
+- [x] Implementasi sesuai `docs/features/checkout.md`
+- [x] Search produk (nama/SKU) + input barcode scanner
+- [x] Keranjang: tambah/kurang quantity, hitung total real-time
+- [x] Blokir tambah produk stok 0 ke keranjang
+- [x] Form pembayaran (cash/transfer/debit), hitung kembalian otomatis
+- [x] `CreateTransactionAction`: insert transaction + items + stock_movements dalam satu `DB::transaction()`
+- [x] Generate `transaction_number` unik (tangani race condition)
+- [x] Update cache `products.stock` setelah transaksi
 
 ### 1.7 Struk
 - [ ] Halaman/komponen `ReceiptPreview` format thermal 58mm/80mm

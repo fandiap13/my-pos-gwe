@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Kasir\ShiftController;
+use App\Http\Controllers\Kasir\TransactionController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // Route khusus Kasir — lihat AGENTS.md (pemisahan route per role) &
 // docs/DECISIONS.md. Semua route di sini wajib middleware auth + role:kasir.
@@ -19,14 +19,17 @@ Route::middleware(['auth', 'role:kasir'])
         Route::post('/shift', [ShiftController::class, 'store'])->name('shift.store');
         Route::get('/shift/riwayat', [ShiftController::class, 'riwayat'])->name('shift.riwayat');
 
+        // Halaman struk setelah checkout sukses dikecualikan dari
+        // shift.active: transaksi sudah tersimpan, struk tetap harus
+        // bisa dibuka walau shift keburu ditutup — dilindungi cek
+        // kepemilikan di TransactionController@selesai.
+        Route::get('/transaksi/selesai/{transaction}', [TransactionController::class, 'selesai'])->name('transaksi.selesai');
+
         Route::middleware('shift.active')->group(function () {
             Route::get('/shift/tutup', [ShiftController::class, 'tutup'])->name('shift.tutup');
             Route::post('/shift/tutup', [ShiftController::class, 'close'])->name('shift.close');
 
-            // Placeholder — halaman Transaksi sungguhan di Fase 1.6.
-            // Lihat docs/ROADMAP.md & docs/features/checkout.md.
-            Route::get('/', function () {
-                return Inertia::render('Kasir/Transaksi');
-            })->name('transaksi');
+            Route::get('/', [TransactionController::class, 'index'])->name('transaksi');
+            Route::post('/', [TransactionController::class, 'store'])->name('transaksi.store');
         });
     });

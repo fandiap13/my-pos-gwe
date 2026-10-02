@@ -337,7 +337,19 @@ const paidAmount = ref<number | null>(50000);
                 />
             </div>
             <div class="mt-4 max-w-sm">
+                <p class="mb-1 text-sm text-text-muted">
+                    PaymentMethodSelector (aktif)
+                </p>
                 <PaymentMethodSelector v-model="paymentMethod" />
+            </div>
+            <div class="mt-4 max-w-sm">
+                <p class="mb-1 text-sm text-text-muted">
+                    PaymentMethodSelector (status false — fitur belum siap)
+                </p>
+                <PaymentMethodSelector
+                    v-model="paymentMethod"
+                    :status="false"
+                />
             </div>
             <div class="mt-4 max-w-sm">
                 <PaymentSummary

@@ -54,7 +54,7 @@
 4. Atur quantity per item di keranjang, sistem hitung subtotal & total otomatis.
 5. Klik "Bayar" → pilih metode pembayaran (cash/transfer/debit) → kalau cash, input nominal dibayar → sistem hitung kembalian otomatis.
 6. Konfirmasi → sistem simpan transaksi (`DB::transaction()`: insert `transactions`, `transaction_items`, `stock_movements` type `out`, update cache `products.stock`).
-7. Tampilkan halaman/preview struk → kasir klik "Cetak" (`window.print()`) atau "Lewati".
+7. Tampilkan halaman preview struk → kasir klik "Cetak" (`window.print()`) atau "Transaksi Baru" (lewati cetak).
 8. Keranjang kosong, siap transaksi berikutnya.
 9. Di akhir sesi kerja, kasir klik **Tutup Shift** → sistem tampilkan kas seharusnya (`expected_cash`) vs input kas fisik aktual → tampilkan selisih → konfirmasi tutup.
 
@@ -88,7 +88,7 @@ Dibangun di Fase 1.2 (`docs/ROADMAP.md`), sebelum halaman fitur dibuat. Semua di
 - `Pagination` menampilkan info "Menampilkan X–Y dari Z data" + kontrol **Baris/halaman** (10/15/25/50/100, default 15, maksimal 100 — dibatasi juga di backend `Controller::perPage`). Ganti baris/halaman mempertahankan filter aktif dan mereset `page` ke 1; link nomor halaman hanya muncul kalau `last_page > 1`.
 
 ### Khusus POS (konteks checkout/kasir)
-`ProductSearch` (cari produk nama/SKU/barcode), `ProductCard`, `CartItem`, `QuantityInput` (+/−), `PaymentMethodSelector` (cash/transfer/debit), `PaymentSummary` (subtotal/total/kembalian), `ReceiptPreview` (struk 58mm/80mm, dipakai di Transaksi & cetak ulang Riwayat).
+`ProductSearch` (cari produk nama/SKU/barcode), `ProductCard`, `CartItem`, `QuantityInput` (+/−), `PaymentMethodSelector` (cash/transfer/debit — prop `status`: `false` menonaktifkan semua metode dan menampilkan pesan "Fitur belum siap"), `PaymentSummary` (subtotal/total/kembalian), `ReceiptPreview` (struk 58mm/80mm, dipakai di Transaksi & cetak ulang Riwayat).
 
 ### Khusus Dashboard & Laporan (mengacu ke Referensi Visual)
 `StatCard` (label + ikon kecil, angka besar, `DeltaBadge`, teks muted "vs. periode lalu"), `DeltaBadge` (naik = hijau, turun = merah), `LineChart` (garis + area gradasi tint, garis putus-putus periode pembanding, tooltip hover), `BarChart` (satu bar disorot warna primer, mis. penjualan per hari/jam), `SubMetricBar` (angka + garis warna di bawahnya, untuk rincian di dalam kartu), `DataTable` ringkas (kolom angka rata kanan, thumbnail produk, ikon naik/turun) untuk "Produk Terlaris".
@@ -97,7 +97,7 @@ Dibangun di Fase 1.2 (`docs/ROADMAP.md`), sebelum halaman fitur dibuat. Semua di
 `AdminLayout` (sidebar + header, `Pages/Admin/`), `KasirLayout` (minim distraksi, `Pages/Kasir/`), `AuthLayout` (halaman login).
 
 - **AdminLayout:** sidebar kiri lebar tetap (±200px) dengan logo + tombol collapse, menu beribu ikon, item aktif berlatar tint primer + garis penanda di kiri, badge hitungan kecil di menu (mis. jumlah stok menipis), grup menu yang bisa dilipat (mis. Laporan → Penjualan, Per Shift), serta Pengaturan & Bantuan di dasar sidebar. Header atas: search dengan shortcut `⌘K`, notifikasi, avatar. Di mobile sidebar menjadi drawer.
-- **KasirLayout:** sengaja lebih ringan dari AdminLayout — tanpa sidebar penuh, hanya header tipis (nama toko, indikator shift aktif, nama kasir, akses ke Riwayat/Tutup Shift) agar area kerja checkout maksimal.
+- **KasirLayout:** sengaja lebih ringan dari AdminLayout — tanpa sidebar penuh, hanya header tipis (nama toko, indikator shift aktif, nama kasir, akses ke Riwayat/Tutup Shift) agar area kerja checkout maksimal. Ada tombol **Kembali** (ikon panah) di kiri header yang selalu mengarah ke halaman Transaksi `/kasir` — kasir yang membuka halaman riwayat/tutup shift butuh jalur kembali yang jelas; tombol disembunyikan saat sedang di halaman Transaksi atau Buka Shift (back ke sana hanya memantul ke halaman yang sama).
 
 **Aturan:** setiap komponen punya state default/hover/focus/active/disabled/loading/error (+ empty state kalau relevan). Cek role & shift aktif kasir ditangani middleware Laravel (`role:admin`, `EnsureShiftActive` — lihat `AGENTS.md`), bukan komponen Vue terpisah.
 

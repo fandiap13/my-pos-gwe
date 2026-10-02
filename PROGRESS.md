@@ -6,11 +6,13 @@
 
 ## Status Saat Ini
 
-**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.5 (Shift Kasir)**.
-**Belum dikerjakan:** 1.6 (Transaksi/Checkout) dan seterusnya — lihat `docs/ROADMAP.md`.
+**Fase aktif:** Fase 1 — Core POS, sub-fase **1.6 (Transaksi/Checkout) selesai dikerjakan & teruji (93 test lulus)** — masih di **working tree, BELUM di-commit**, menunggu review user sebelum commit/push.
+**Belum dikerjakan:** 1.7 (Struk) dan seterusnya — lihat `docs/ROADMAP.md`.
 
-**Commit terakhir:** `1f2bce5` "fix: halaman Produk blank karena shape paginator dibungkus ganda".
-**PENTING:** perubahan Fase 1.5 (shift) + 1 file lama (`resources/js/Components/Dropdown.vue`, perubahan sesi sebelumnya) masih di **working tree, BELUM di-commit** — jalankan `git status` & `git diff` sebelum lanjut, jangan menganggap repo bersih.
+**Commit terakhir:** `f45e4a8` "feat: kolom No., nilai kosong '-', kontrol baris/halaman (maks 100)".
+**PENTING — working tree saat ini BELUM di-commit. Jalankan `git status` & `git diff` sebelum lanjut, jangan menganggap repo bersih:**
+- Perubahan **Fase 1.6 (checkout)**: `app/Actions/Transaction/CreateTransactionAction.php`, `app/Http/Controllers/Kasir/TransactionController.php`, `app/Http/Requests/Kasir/StoreTransactionRequest.php`, route `kasir.transaksi` / `kasir.transaksi.store` / `kasir.transaksi.selesai` (`routes/kasir.php`), halaman `resources/js/Pages/Kasir/Transaksi/{Index,Selesai}.vue` (menggantikan placeholder `Transaksi.vue`), `tests/Feature/Kasir/TransactionTest.php`, seed stok awal (`DatabaseSeeder`, `ProductSeeder`), penyesuaian review (`PaymentMethodSelector` prop `status`, tombol **Kembali** di `KasirLayout`, demo di `ComponentShowcase`), update docs (ROADMAP 1.6 dicentang, DECISIONS 5 entri Fase 1.6, DATABASE, UI).
+- Perubahan dari **luar sesi ini** (milik user/sesi lain — jangan dihapus, jangan dicampur ke satu commit tanpa konfirmasi): `docs/ROADMAP.md` bagian 1.12 + `docs/features/admin-global-search.md` (requirement Admin Global Search), **pesan validasi Bahasa Indonesia via `messages()` per Form Request** (8 file request termasuk `StoreTransactionRequest`, `tests/Feature/ValidationMessageTest.php`, entri DECISIONS teratas — `lang/id/` sempat ada lalu dihapus, locale tetap `en`).
 
 ## Yang Sudah Jadi (Verified, Bukan Asumsi)
 
@@ -28,10 +30,10 @@
 - Halaman Login & seluruh halaman Auth/Profile sudah pakai komponen & `AuthLayout` baru; komponen Breeze lama (PrimaryButton, TextInput, GuestLayout, AuthenticatedLayout, dll) sudah dihapus total
 - `@tailwindcss/vite` (v4, tidak terpakai) dihapus — project tetap di Tailwind v3
 - Middleware `role:admin`/`role:kasir` (`EnsureUserHasRole`) dan `shift.active` (`EnsureShiftActive`) — lihat `docs/DECISIONS.md`
-- `routes/admin.php` & `routes/kasir.php` terdaftar via `bootstrap/app.php`, berisi route placeholder: `admin.dashboard`, `kasir.transaksi`, `kasir.shift.buka`
+- `routes/admin.php` & `routes/kasir.php` terdaftar via `bootstrap/app.php` — route nyata: `admin.dashboard`, `admin.*` (produk/kategori/shifts), `kasir.transaksi` (+ `.store`/`.selesai`), `kasir.shift.*`
 - Redirect setelah login terpusat di `app/Actions/Auth/DetermineLoginRedirectAction.php` — admin ke dashboard, kasir dengan shift ke transaksi, kasir tanpa shift ke buka shift. Dipakai juga oleh 4 controller Breeze (password confirm, email verification) yang semula hardcode `route('dashboard')` (route itu sudah dihapus)
 - Validasi `is_active` di `LoginRequest` — akun nonaktif ditolak login meski kredensial benar
-- Pages placeholder: `Pages/Admin/Dashboard.vue`, `Pages/Kasir/Transaksi.vue`, `Pages/Kasir/Shift/Buka.vue` (isi sungguhan menyusul di Fase 1.5/1.6/1.11)
+- Pages placeholder tersisa: `Pages/Admin/Dashboard.vue` (isi menyusul Fase 1.11). `Pages/Kasir/Transaksi.vue` sudah DIGANTI halaman sungguhan `Pages/Kasir/Transaksi/{Index,Selesai}.vue` (Fase 1.6)
 - CRUD Kategori penuh (`Admin/Categories/{Index,Create,Edit}.vue`): self-referencing parent, validasi anti-siklus, blokir hapus kalau masih ada produk/subkategori — lihat `docs/DECISIONS.md`
 - CRUD Produk penuh (`Admin/Products/{Index,Create,Edit}.vue`): search + filter kategori + pagination di Index, validasi SKU/barcode unik, badge status stok (aman/menipis/habis)
 - Stok awal produk dicatat via `stock_movements` (bukan isi kolom `stock` langsung) lewat `CreateProductAction` — lihat `docs/DECISIONS.md`. Form Edit Produk TIDAK punya field stok sama sekali (perubahan stok nanti lewat Penyesuaian Manual, Fase 1.9)
@@ -46,12 +48,20 @@
 - **`shiftIsActive` & `flash` di-share `HandleInertiaRequests`** → KasirLayout baca dari shared props (badge shift + link "Tutup Shift"), `Toast.vue` menampilkan flash `success`/`error` dari redirect backend sebagai toast
 - **Bug fix penting:** props **single Resource** yang dilempar mentah (`new ProductResource($p)`) dibungkus Inertia jadi `{data: ...}` lewat jalur `Responsable` → halaman Edit Produk/Kategori sebelumnya membaca `undefined`. Sekarang semua pakai `->resolve()` — lihat `docs/DECISIONS.md`
 - 76 test lulus (16 shift kasir + 4 riwayat shift admin + 2 regression Edit + 54 lainnya), Pint, ESLint, `vue-tsc`/`npm run build` clean
+- **Fase 1.6 Transaksi/Checkout selesai & teruji (total 93 test lulus)**:
+  - **Backend:** `StoreTransactionRequest` (struktur items + `distinct` + exists anti-soft-delete), `CreateTransactionAction` — semua dalam satu `DB::transaction()`: `lockForUpdate` shift aktif → row `store_settings` → baris produk; validasi ulang stok/harga/harga-bayar dengan pesan key `checkout` menyebut produk bermasalah; insert `transactions` (`status=completed`) + `transaction_items` (snapshot nama/harga) + `stock_movements` type `out` (reference ke `transaction_items`); cache `products.stock` ikut ter-update via `StockMovementObserver`
+  - **`transaction_number` `TRX-YYYYMMDD-XXXX`** sekuensial per hari **zona waktu toko**, di-generate aman race via lock row `store_settings` (tanpa tabel counter) — lihat `docs/DECISIONS.md`
+  - **Route:** `kasir.transaksi` (GET `/kasir`, grup `shift.active`), `kasir.transaksi.store` (POST), `kasir.transaksi.selesai` (GET struk — **di luar** `shift.active`, cek kepemilikan 403)
+  - **Halaman:** `Kasir/Transaksi/Index.vue` (katalog semua produk sebagai props + filter client-side — `cost_price` TIDAK dikirim ke kasir; Enter = konfirmasi scan barcode; keranjang + `CartItem`/`QuantityInput`; modal pembayaran `PaymentMethodSelector` + `MoneyInput` + `PaymentSummary` hitung kembalian real-time; banner error backend) dan `Kasir/Transaksi/Selesai.vue` (props `receipt` shape `Receipt` + `ReceiptPreview`, tombol "Cetak Struk" `window.print()` & "Transaksi Baru"; header `KasirLayout` `print:hidden`)
+  - **Test:** 11 test checkout di `tests/Feature/Kasir/TransactionTest.php` (sukses penuh, stok kurang→rollback, harga berubah, bayar kurang, tanpa shift, non-cash pakai total, nomor urut, snapshot awet, struk milik sendiri/403, produk terhapus)
+  - **Seed konsisten:** `ProductSeeder` menambah movement `in` stok awal (tanpa ini checkout produk seed bikin stok negatif — observer hitung dari movements saja); `DatabaseSeeder` buat user sebelum product — lihat `docs/DECISIONS.md`
+  - **Penyesuaian review:** `PaymentMethodSelector` kini punya prop `status` (default `true`; `false` → semua tombol metode nonaktif + notice "Fitur belum siap"; demo status false ada di `ComponentShowcase`). `KasirLayout` kini punya tombol **Kembali** (ikon panah) ke `/kasir` di header — tersembunyi otomatis saat sedang di halaman `Kasir/Transaksi/Index` atau `Kasir/Shift/Buka` — lihat `docs/UI.md`
 
 ## Yang BELUM Ada (Jangan Diasumsikan Sudah Jadi)
 
-- **Belum ada checkout/transaksi sungguhan** — `Pages/Kasir/Transaksi.vue` masih placeholder, isi sungguhan menyusul Fase 1.6 (lihat `docs/features/checkout.md`). Halaman shift (Buka, Tutup, Riwayat) sudah final.
+- **Cetak struk belum sempurna (Fase 1.7):** `window.print()` sudah tersambung dari halaman Selesai, tapi `@media print` untuk ukuran kertas thermal 58mm/80mm di `app.css` belum dibuat, dan **belum ada cetak ulang dari Riwayat Transaksi**. `ReceiptPreview` sudah ada & dipakai.
+- **Belum ada Riwayat Transaksi** (kasir & admin) dan **belum ada Void transaksi** (Fase 1.8).
 - Komponen chart (`StatCard`, `LineChart`, `BarChart`, dll) di `docs/UI.md` **sengaja belum dibuat** — ditunda ke Fase 1.11, lihat `docs/DECISIONS.md`. Chart.js/`vue-chartjs` juga belum ter-install.
-- Tidak ada `CreateTransactionAction`, tidak ada checkout sungguhan.
 - Tidak ada halaman **Stok — Riwayat Pergerakan** / **Penyesuaian Manual** (Fase 1.9) — `stock_movements` sudah bisa diisi lewat `CreateProductAction`, tapi belum ada UI untuk melihat riwayatnya atau input manual (barang masuk/koreksi) di luar saat create produk.
 - Modal inline untuk tambah kategori cepat dari form Produk **sengaja tidak dibuat** (halaman terpisah dipilih) — lihat `docs/DECISIONS.md`.
 
@@ -79,6 +89,8 @@ Baca `docs/DECISIONS.md` secara lengkap — berisi keputusan arsitektur yang sud
 18. **Props single Resource juga wajib `->resolve()`** — `new XResource($model)` mentah dibungkus Inertia jadi `{data: {...}}` lewat jalur `Responsable` (`JsonResource::$wrap = 'data'`), yang dulu bikin form Edit Produk/Kategori baca `undefined`. Berlaku untuk semua halaman detail/edit.
 19. **Shift (Fase 1.5):** `expected_cash` dihitung backend (modal awal + transaksi **cash `completed`** — transfer & voided tidak dihitung), bukan dari frontend; satu shift aktif per kasir dijamin `lockForUpdate()` di `OpenShiftAction`; riwayat shift kasir (`kasir.shift.riwayat`) TIDAK dijaga middleware `shift.active`.
 20. **`shiftIsActive` & `flash` dishare lewat `HandleInertiaRequests`** — jangan kirim prop shift per halaman; `Toast.vue` sudah jadi jembatan flash→toast, cukup `->with('success', ...)` di controller.
+21. **Checkout (Fase 1.6):** katalog produk dimuat penuh ke props & difilter client-side (scan barcode harus instan, tanpa request); `cost_price` tidak dipilih untuk kasir; submit SELALU divalidasi ulang server (stok, harga == harga harapan client, shift open, bayar cukup) dengan error key `checkout`; `transaction_number` di-generate dengan `lockForUpdate()` row `store_settings` (hari = zona waktu toko) — lihat `docs/DECISIONS.md`.
+22. **Halaman struk `kasir.transaksi.selesai` berada DI LUAR middleware `shift.active`** (dijaga cek kepemilikan, 403 kalau bukan transaksi sendiri) — transaksi sudah tersimpan, struk harus tetap terbuka walau shift ditutup. Jangan memindahkannya ke dalam grup `shift.active`.
 
 ## Cara Melanjutkan (Prompt Starter untuk AI Baru)
 
@@ -93,8 +105,10 @@ Baca file-file ini secara berurutan sebelum mulai kerja apa pun:
 5. docs/DATABASE.md, docs/PRD.md, docs/UI.md — konteks produk sesuai kebutuhan
 6. docs/features/*.md — spec detail kalau mengerjakan fitur yang sudah ada filenya
 
-Lanjutkan dari Fase 1.6 (Transaksi/Checkout) di docs/ROADMAP.md —
-baca docs/features/checkout.md dulu.
+Lanjutkan dari Fase 1.7 (Struk) di docs/ROADMAP.md —
+baca docs/features/checkout.md (langkah 10) & docs/DECISIONS.md
+keputusan Fase 1.6 dulu. CATATAN: perubahan Fase 1.6 masih di working tree
+(belum commit) sampai user menyetujui — cek `git status` dulu.
 Jalankan `php artisan test` setelah tiap perubahan, jangan nyatakan selesai
 tanpa verifikasi nyata (migration benar-benar jalan, test benar-benar lulus).
 ```

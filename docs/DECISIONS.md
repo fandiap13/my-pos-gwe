@@ -16,6 +16,48 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 - **Alternatif yang ditolak:** File bahasa `lang/id/validation.php` + `APP_LOCALE=id` (sudah dibuat lalu dihapus — user tidak mau); menulis `messages()` sebagian sehingga rule yang terlewat jatuh ke pesan default Laravel berbahasa Inggris.
 - **Dampak:** Rule baru di Form Request **wajib** disertai kunci `messages()` yang setara — kalau lupa, pesan tampil bahasa Inggris dari default framework. Validasi inline `$request->validate()` / `Auth::validate()` di controller Breeze (lupa sandi, ganti sandi, confirm password) di luar scope request dan **masih berbahasa Inggris**. Diunci oleh `tests/Feature/ValidationMessageTest.php`.
 
+---
+
+### [2026-10-02] Fase 1.6: katalog produk dimuat penuh ke props, pencarian & scan client-side
+- **Keputusan:** Halaman Transaksi memuat **semua** produk layak jual sekali per kunjungan (kolom terbatas: id, nama, SKU, barcode, harga, stok, min_stock — **tanpa `cost_price`**, kasir tidak boleh melihat harga modal). Pencarian nama/SKU/barcode dan konfirmasi scan barcode (Enter) difilter/dicocokkan di client; tampilan dibatasi 24 kartu pertama.
+- **Alasan:** Checkout harus "cepat dan minim friksi" (checkout.md) — scanner barcode mengirim puluhan karakter lalu Enter dalam <100ms; search lewat request per ketikan berisiko hasil belum sampai saat Enter ditekan. Skala toko single-store membuat payload katalog masih wajar.
+- **Alternatif yang ditolak:** Server-side search via Inertia partial reload + debounce (latensi tiap scan, penanganan Enter jadi rumit); endpoint JSON `/api/products/search` (melanggar arsitektur Inertia di AGENTS.md); pagination/pencarian server-side di layar kasir (menambah klik & request pada alur inti).
+- **Dampak:** Produk baru / harga berubah baru terlihat setelah halaman dimuat ulang (setiap navigasi kasir me-load props segar); validasi stok & harga tetap di server saat submit — lihat keputusan "validasi ulang saat submit". Kalau katalog kelak ratusan ribu, evaluasi ulang dengan search server-side.
+
+---
+
+### [2026-10-02] Fase 1.6: submit checkout divalidasi ulang di server (stok, harga, shift, bayar)
+- **Keputusan:** `CreateTransactionAction` mengunci dengan `lockForUpdate()` shift aktif kasir, row `store_settings`, dan semua baris produk yang dibeli di dalam satu `DB::transaction()`, lalu memvalidasi ulang: shift masih `open`, stok mencukupi, **harga produk sama dengan `price` yang dikirim client** (harga harapan di payload `items`), dan untuk cash `paid_amount >= total`. Semua kegalatan melempar `ValidationException` dengan key `checkout` (rollback penuh, tidak ada row tersimpan, pesan menyebut produk yang bermasalah). Metode non-cash: `paid_amount` di-set = `total` dan `change_amount` = 0 di server, mengabaikan nilai dari client.
+- **Alasan:** Uang & stok tidak boleh dipercaya dari client (AGENTS.md Security). Harga harus dicek eksplisit — memakai harga client begitu saja membuat transaksi tidak peka saat admin menaikkan harga; memakai diam-diam harga DB membuat total yang dibayar bisa berbeda dari yang sudah dikonfirmasi kasir. Kasus tepi shift ditutup di tengah checkout harus ditolak, bukan tersimpan ke shift `closed` (checkout.md).
+- **Alternatif yang ditolak:** Percaya harga client (bisa tidak sinkron/dimanipulasi); diam-diam mengganti harga dengan harga DB tanpa error (total berubah setelah konfirmasi); cek stok/harga di luar transaksi tanpa lock (race dua kasir).
+- **Dampak:** Payload checkout per item = `{product_id, quantity, price}`; rule `distinct` di `StoreTransactionRequest` mencegah satu produk terkirim dua baris (bisa melewati cek stok per baris). Error bisnis tampil sebagai banner "Transaksi gagal" di modal pembayaran (key `checkout`).
+
+---
+
+### [2026-10-02] Fase 1.6: `transaction_number` di-generate dengan lock row `store_settings` (tanpa tabel counter)
+- **Keputusan:** Format final `TRX-YYYYMMDD-XXXX`, sekuensial **per hari menurut zona waktu toko** (`store_settings.timezone`). Generate di dalam `DB::transaction()` checkout dengan cara: kunci row `store_settings` pakai `lockForUpdate()` lebih dulu, baru hitung `count(transaksi hari lokal) + 1`. Lock dilepas saat commit.
+- **Alasan:** Satu lock mengerjakan dua hal: serialisasi generate nomor antar kasir (transaksi kedua menunggu commit pertama, sehingga `count` selalu melihat baris terakhir — aman dari race) dan membaca zona waktu hari transaksi. Tanggal mengikuti zona toko supaya tanggal di nomor struk sama dengan tanggal yang terlihat kasir/pelanggan (timestamp disimpan UTC).
+- **Alternatif yang ditolak:** Tabel counter baru (migrasi skema hanya untuk nomor); `pg_advisory_xact_lock` lewat raw SQL (khusus Postgres, melanggar preferensi query builder AGENTS.md); retry saat unique violation (harus mengulang seluruh transaksi termasuk insert stok); `lockForUpdate` pada baris transaksi hari itu (tetap race untuk transaksi pertama hari itu — barisnya belum ada untuk dikunci).
+- **Dampak:** Checkout dua kasir bersamaan menanggung antrian milidetik pada row settings (wajar untuk toko kecil); unique index `transaction_number` tetap jadi pengaman terakhir; lewat 9999 transaksi/hari format melebar jadi 5 digit tapi tetap unik.
+
+---
+
+### [2026-10-02] Fase 1.6: halaman struk terpisah `kasir.transaksi.selesai`, di luar middleware `shift.active`
+- **Keputusan:** Setelah checkout sukses, redirect ke halaman baru `Kasir/Transaksi/Selesai` (route `GET /kasir/transaksi/selesai/{transaction}`) yang menerima props `receipt` (shape `Receipt` di `resources/js/types/models.ts`) + nama & alamat toko. Route ini DI LUAR grup `shift.active` dan dijaga cek kepemilikan (`transaction.user_id === user login`, selain itu 403).
+- **Alasan:** Transaksi sudah tersimpan — struk harus tetap bisa dibuka walau shift keburu ditutup, jangan sampai middleware menelan redirect-nya. Memakai props, bukan flash session: reload aman, dan pindah ke halaman ini mereset keranjang otomatis karena component `Kasir/Transaksi/Index` unmount. Payload dibangun sebagai array biasa (bukan Resource) supaya cocok 1:1 dengan interface `Receipt`.
+- **Alternatif yang ditolak:** Flash session berisi data struk (hilang saat refresh, butuh baca ulang); modal struk di halaman Transaksi (state keranjang & form bayar persist, tombol "Transaksi Baru" jadi kerjaan manual).
+- **Dampak:** `TransactionController@selesai` membangun payload struk lewat method privat `receipt()` — saat Fase 1.7 (cetak ulang dari Riwayat) method ini dipakai ulang/di-extract jadi Resource bersama. Header `KasirLayout` diberi `print:hidden` supaya hasil cetak hanya berisi struk.
+
+---
+
+### [2026-10-02] Fase 1.6: stok awal produk seed/factory dicatat sebagai `stock_movements` type `in`
+- **Keputusan:** `ProductSeeder` membuat baris `stock_movements` type `in` untuk tiap produk seed yang stoknya > 0 (`created_by` admin seed; `DatabaseSeeder` kini membuat user sebelum ProductSeeder). Test yang memakai `Product::factory()` lalu menjalankan aksi yang memicu `StockMovementObserver` (checkout, dsb) wajib menambahkan movement `in` awal — lihat helper `checkoutSetup()` di `tests/Feature/Kasir/TransactionTest.php`.
+- **Alasan:** `products.stock` adalah cache agregat dari `stock_movements` (AGENTS.md). Factory mengisi kolom stok langsung tanpa riwayat, sehingga observer menghitung ulang dari nol saat transaksi pertama dan stok demo langsung jadi negatif (ketahuan saat menguji checkout pada produk seed).
+- **Alternatif yang ditolak:** Mengubah observer agar memperhitungkan nilai kolom lama (melanggar prinsip `stock_movements` sebagai satu-satunya sumber kebenaran); menambahkan `afterCreating` di `ProductFactory` (butuh `created_by` — menimbulkan user sampah atau kegagalan saat belum ada user).
+- **Dampak:** Data seed konsisten untuk demo checkout. Jalur produksi tidak berubah: `CreateProductAction` sudah mencatat movement stok awal sejak Fase 1.4.
+
+---
+
 ### [2026-10-02] Kontrol baris/halaman di Pagination, `per_page` dibatasi 1..100
 - **Keputusan:** Semua halaman daftar yang punya pagination menampilkan kontrol **Baris/halaman** (opsi 10/15/25/50/100, default 15) di dalam komponen `Pagination`, di samping teks "Menampilkan X–Y dari Z data". Nilai query `per_page` dibatasi 1..100 lewat method base `Controller::perPage()` — **bukan** Form Request.
 - **Alasan:** Permintaan user supaya client tidak perlu mengetab banyak saat data banyak, dengan batas atas 100 baris supaya query tetap ringan. `per_page` bukan input form: nilainya dibatasi/dibulatkan (bukan ditolak), sehingga URL yang tidak valid tetap menampilkan data wajar alih-alih error validasi, dan tidak perlu satu Form Request per endpoint index.
