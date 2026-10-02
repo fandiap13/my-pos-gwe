@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Auth\DetermineLoginRedirectAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -27,13 +28,16 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, DetermineLoginRedirectAction $determineRedirect): RedirectResponse
     {
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // intended() sengaja TIDAK dipakai di sini — redirect selalu
+        // ditentukan oleh role (admin/kasir) + status shift, bukan URL
+        // yang coba diakses sebelum login. Lihat docs/features/auth-login.md.
+        return redirect()->to($determineRedirect->handle($request->user()));
     }
 
     /**
@@ -47,6 +51,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

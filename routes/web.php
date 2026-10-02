@@ -6,11 +6,9 @@ use Inertia\Inertia;
 
 // Tidak ada halaman landing publik — aplikasi internal (POS), '/' langsung
 // ke login. Lihat docs/UI.md: hanya ada halaman Login, Kasir, dan Admin.
+// Tujuan setelah login ditentukan oleh role, lihat routes/admin.php,
+// routes/kasir.php, dan DetermineLoginRedirectAction.
 Route::redirect('/', '/login');
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

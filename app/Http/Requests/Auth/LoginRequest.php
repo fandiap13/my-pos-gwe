@@ -45,8 +45,25 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
+            // Pesan error generik — tidak membedakan "email tidak ada" vs
+            // "password salah" (hindari user enumeration). Lihat
+            // docs/features/auth-login.md.
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // is_active dicek SETELAH Auth::attempt berhasil (bukan sebelumnya)
+        // supaya pesan error untuk akun nonaktif tetap spesifik, tanpa
+        // membocorkan status akun ke user yang belum terbukti tahu
+        // passwordnya. Lihat docs/features/auth-login.md langkah 4.
+        if (! Auth::user()->is_active) {
+            Auth::logout();
+
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda tidak aktif, hubungi admin.',
             ]);
         }
 

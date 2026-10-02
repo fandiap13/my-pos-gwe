@@ -6,10 +6,10 @@
 
 ## Status Saat Ini
 
-**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.2 (Design System & Komponen Dasar)**.
-**Belum dikerjakan:** 1.3 (Autentikasi & Role) dan seterusnya — lihat `docs/ROADMAP.md`.
+**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.3 (Autentikasi & Role)**.
+**Belum dikerjakan:** 1.4 (Manajemen Produk & Kategori) dan seterusnya — lihat `docs/ROADMAP.md`.
 
-**Commit terakhir:** lihat `git log --oneline -1` — commit terakhir berjudul "feat: Fase 1.2 — design system, komponen dasar, ESLint/Prettier".
+**Commit terakhir:** lihat `git log --oneline -1` — commit terakhir berjudul "feat: Fase 1.3 — autentikasi, role, redirect berdasarkan role & shift".
 
 ## Yang Sudah Jadi (Verified, Bukan Asumsi)
 
@@ -26,15 +26,19 @@
 - Component showcase di `/dev/components` (route local-only) untuk verifikasi visual semua komponen
 - Halaman Login & seluruh halaman Auth/Profile sudah pakai komponen & `AuthLayout` baru; komponen Breeze lama (PrimaryButton, TextInput, GuestLayout, AuthenticatedLayout, dll) sudah dihapus total
 - `@tailwindcss/vite` (v4, tidak terpakai) dihapus — project tetap di Tailwind v3
+- Middleware `role:admin`/`role:kasir` (`EnsureUserHasRole`) dan `shift.active` (`EnsureShiftActive`) — lihat `docs/DECISIONS.md`
+- `routes/admin.php` & `routes/kasir.php` terdaftar via `bootstrap/app.php`, berisi route placeholder: `admin.dashboard`, `kasir.transaksi`, `kasir.shift.buka`
+- Redirect setelah login terpusat di `app/Actions/Auth/DetermineLoginRedirectAction.php` — admin ke dashboard, kasir dengan shift ke transaksi, kasir tanpa shift ke buka shift. Dipakai juga oleh 4 controller Breeze (password confirm, email verification) yang semula hardcode `route('dashboard')` (route itu sudah dihapus)
+- Validasi `is_active` di `LoginRequest` — akun nonaktif ditolak login meski kredensial benar
+- Pages placeholder: `Pages/Admin/Dashboard.vue`, `Pages/Kasir/Transaksi.vue`, `Pages/Kasir/Shift/Buka.vue` (isi sungguhan menyusul di Fase 1.5/1.6/1.11)
+- 32 test lulus (termasuk `RoleAccessTest` baru: guest/role salah diblokir, shift aktif/tidak aktif, dll), Pint & ESLint clean
 
 ## Yang BELUM Ada (Jangan Diasumsikan Sudah Jadi)
 
-- **Belum ada halaman fitur POS apa pun** (CRUD produk, checkout, shift, dll) — `resources/js/Pages/Admin/` dan `Pages/Kasir/` (folder sesuai `AGENTS.md`) masih KOSONG, belum dibuat. Yang sudah ada baru komponen & layout generik, belum halaman yang memakainya untuk fitur nyata.
-- **Tidak ada middleware role** (`role:admin`, `role:kasir`) — kolom `role` di `users` sudah ada, tapi belum ada yang memvalidasinya di route.
-- **Tidak ada `routes/admin.php` / `routes/kasir.php`** — route yang ada sekarang masih `routes/web.php` (login, profile, dashboard placeholder) + `routes/api.php` (health check).
-- **Login belum redirect sesuai role** — saat ini login sukses selalu ke `/dashboard` generik (placeholder, lihat `Dashboard.vue`), bukan ke `/admin` atau `/kasir` sesuai `docs/features/auth-login.md`. Dashboard akan diganti total di Fase 1.11 (StatCard, grafik, dll — bukan placeholder ini).
+- **Belum ada halaman fitur POS sungguhan** (CRUD produk, checkout, shift form, dll) — `Pages/Admin/` dan `Pages/Kasir/` baru berisi 1 halaman placeholder masing-masing, belum fitur nyata.
 - Komponen chart (`StatCard`, `LineChart`, `BarChart`, dll) di `docs/UI.md` **sengaja belum dibuat** — ditunda ke Fase 1.11, lihat `docs/DECISIONS.md`. Chart.js/`vue-chartjs` juga belum ter-install.
-- Tidak ada `CreateTransactionAction`, tidak ada checkout, tidak ada shift, tidak ada CRUD produk/kategori dari sisi UI.
+- Tidak ada `CreateTransactionAction`, tidak ada checkout sungguhan, tidak ada form shift sungguhan, tidak ada CRUD produk/kategori dari sisi UI.
+- `AdminLayout` menu sidebar: hanya "Dashboard" yang route-nya nyata (`href="route('admin.dashboard')"`), sisanya (Produk, Stok, Transaksi, Laporan, Pengguna, Pengaturan) masih `href="#"` — diisi route sungguhan saat fase masing-masing dikerjakan.
 
 ## Keputusan Penting yang HARUS Dibaca Sebelum Lanjut
 
@@ -51,6 +55,8 @@ Baca `docs/DECISIONS.md` secara lengkap — berisi keputusan arsitektur yang sud
 9. Design tokens (warna, font Inter, dll) di `tailwind.config.js` & `docs/UI.md` — jangan ubah salah satu tanpa mengubah yang lain (harus tetap sinkron)
 10. Komponen chart ditunda ke Fase 1.11, chart library = Chart.js/`vue-chartjs` (bukan ApexCharts)
 11. Icon = `@lucide/vue` (bukan `lucide-vue-next`, versi lama sudah deprecated — jangan install ulang package lama ini)
+12. Redirect setelah login SELALU terpusat di `DetermineLoginRedirectAction` — jangan pakai `redirect()->intended()` atau hardcode `route('dashboard')` di controller manapun (route itu sudah tidak ada)
+13. `shift.active` middleware TIDAK BOLEH dipasang di route `kasir.shift.buka` — akan menyebabkan redirect loop (kasir tanpa shift tidak bisa membuka shift-nya sendiri)
 
 ## Cara Melanjutkan (Prompt Starter untuk AI Baru)
 
@@ -65,7 +71,7 @@ Baca file-file ini secara berurutan sebelum mulai kerja apa pun:
 5. docs/DATABASE.md, docs/PRD.md, docs/UI.md — konteks produk sesuai kebutuhan
 6. docs/features/*.md — spec detail kalau mengerjakan fitur yang sudah ada filenya
 
-Lanjutkan dari Fase 1.3 (Autentikasi & Role) di docs/ROADMAP.md.
+Lanjutkan dari Fase 1.4 (Manajemen Produk & Kategori) di docs/ROADMAP.md.
 Jalankan `php artisan test` setelah tiap perubahan, jangan nyatakan selesai
 tanpa verifikasi nyata (migration benar-benar jalan, test benar-benar lulus).
 ```

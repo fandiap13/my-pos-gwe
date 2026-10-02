@@ -39,7 +39,11 @@ interface MenuGroup {
 }
 
 const menu: (MenuItem | MenuGroup)[] = [
-    { label: 'Dashboard', icon: LayoutDashboard, href: '#' },
+    {
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        href: route('admin.dashboard'),
+    },
     {
         label: 'Produk',
         icon: Package,

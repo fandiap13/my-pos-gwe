@@ -42,11 +42,11 @@ Checklist pengerjaan. Centang `[x]` setelah fitur selesai dan teruji.
 Komponen chart (StatCard, LineChart, dll) sengaja ditunda ke Fase 1.11 — lihat `docs/DECISIONS.md`.
 
 ### 1.3 Autentikasi & Role
-- [ ] Implementasi sesuai `docs/features/auth-login.md`
-- [ ] Middleware `role:admin` / `role:kasir`
-- [ ] Middleware `EnsureShiftActive` untuk route kasir
-- [ ] Setup `routes/admin.php` & `routes/kasir.php` sesuai `AGENTS.md` (pemisahan route per role)
-- [ ] Redirect login sesuai role + cek shift aktif
+- [x] Implementasi sesuai `docs/features/auth-login.md`
+- [x] Middleware `role:admin` / `role:kasir`
+- [x] Middleware `EnsureShiftActive` untuk route kasir
+- [x] Setup `routes/admin.php` & `routes/kasir.php` sesuai `AGENTS.md` (pemisahan route per role)
+- [x] Redirect login sesuai role + cek shift aktif
 
 ### 1.4 Manajemen Produk & Kategori (Admin)
 - [ ] CRUD Kategori (termasuk pilih parent untuk subkategori)

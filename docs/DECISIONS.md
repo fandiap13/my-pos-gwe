@@ -10,6 +10,22 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 
 ---
 
+### [2026-10-02] Redirect login terpusat di DetermineLoginRedirectAction
+- **Keputusan:** Logic "ke mana user diarahkan setelah login/verifikasi" (admin → dashboard, kasir dengan shift → transaksi, kasir tanpa shift → buka shift) dipusatkan di satu class `app/Actions/Auth/DetermineLoginRedirectAction.php`, dipanggil dari `AuthenticatedSessionController` DAN 4 controller Breeze bawaan lain yang semula hardcode `route('dashboard')` (`ConfirmablePasswordController`, `EmailVerificationNotificationController`, `EmailVerificationPromptController`, `VerifyEmailController`).
+- **Alasan:** `docs/features/auth-login.md` "Catatan Teknis" menyarankan logic ini di satu tempat. `redirect()->intended()` bawaan Breeze tidak dipakai lagi — tujuan redirect SELALU ditentukan oleh role + status shift, bukan URL yang sempat dicoba diakses sebelum login, karena untuk POS, kasir/admin yang login seharusnya selalu masuk ke area kerjanya, bukan ke halaman acak yang kebetulan coba diakses saat belum login.
+- **Alternatif yang ditolak:** Custom `LoginResponse` via Laravel Fortify contract — tidak dipakai karena Fortify tidak terinstal (Breeze pakai pendekatan controller langsung, bukan Fortify actions).
+- **Dampak:** Route `/dashboard` lama (generik, Fase 1.2) dihapus total, diganti `admin.dashboard` (routes/admin.php) dan `kasir.transaksi`/`kasir.shift.buka` (routes/kasir.php). `Pages/Dashboard.vue` lama dihapus, diganti `Pages/Admin/Dashboard.vue`, `Pages/Kasir/Transaksi.vue`, `Pages/Kasir/Shift/Buka.vue` (semua masih placeholder, lihat `docs/ROADMAP.md` Fase 1.5/1.6/1.11).
+
+---
+
+### [2026-10-02] Middleware role & shift: alias 'role' dan 'shift.active'
+- **Keputusan:** Dua middleware baru: `EnsureUserHasRole` (alias `role:admin`/`role:kasir`, dipasang di `routes/admin.php`/`routes/kasir.php`) dan `EnsureShiftActive` (alias `shift.active`, HANYA dipasang di route `kasir.transaksi`, BUKAN di `kasir.shift.buka` — kalau dipasang di situ juga, terjadi redirect loop karena kasir tanpa shift tidak akan pernah bisa membuka shift-nya sendiri).
+- **Alasan:** Sesuai `AGENTS.md` (pemisahan route per role) dan `docs/features/auth-login.md` (shift dicek ulang di tiap request, bukan cuma saat login, karena kasir bisa logout di tengah shift lalu login lagi).
+- **Alternatif yang ditolak:** Cek role/shift manual di tiap controller — ditolak, middleware lebih DRY dan konsisten dengan prinsip "authorization selalu diverifikasi di backend" di `AGENTS.md`.
+- **Dampak:** `bootstrap/app.php` mendaftarkan alias `role` dan `shift.active`, juga registrasi `routes/admin.php`/`routes/kasir.php` lewat `withRouting(then: ...)`. `is_active` user dicek di `LoginRequest::authenticate()` SETELAH `Auth::attempt()` berhasil (bukan sebelum), supaya pesan "akun tidak aktif" hanya muncul untuk kredensial yang benar.
+
+---
+
 ### [2026-10-02] ESLint + Prettier di-setup mengikuti stub Breeze Vue+TS
 - **Keputusan:** ESLint & Prettier di-setup manual (bukan re-run `breeze:install`) mengikuti versi package & config persis yang dipakai Breeze untuk stack Inertia+Vue+TypeScript (`eslint@^8.57.0`, `eslint-plugin-vue@^9.23.0`, `@vue/eslint-config-typescript@^13.0.0`, dll — lihat `vendor/laravel/breeze/src/Console/InstallsInertiaStacks.php`). Config disalin dari `vendor/laravel/breeze/stubs/inertia-vue-ts/.eslintrc.cjs` dan `stubs/inertia-common/.prettierrc`.
 - **Alasan:** `AGENTS.md` sudah menjanjikan `npm run lint`/`npm run format` sejak awal, tapi baru ketahuan belum pernah benar-benar di-setup saat Fase 1.2 berjalan (Breeze diinstal tanpa flag `--eslint` di Fase 0). Mengikuti versi/config resmi Breeze lebih aman daripada menebak kombinasi versi sendiri, dan tetap konsisten dengan ekosistem Inertia+Vue+TS yang dipakai.
