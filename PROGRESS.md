@@ -6,13 +6,11 @@
 
 ## Status Saat Ini
 
-**Fase aktif:** Fase 1 — Core POS, sub-fase **1.6 (Transaksi/Checkout) selesai dikerjakan & teruji (93 test lulus)** — masih di **working tree, BELUM di-commit**, menunggu review user sebelum commit/push.
+**Fase aktif:** Fase 1 — Core POS, sub-fase **1.6 (Transaksi/Checkout) selesai dikerjakan, teruji (93 test lulus), sudah di-commit `f4e3b71` & di-push** — review user sudah beres, lanjut ke sub-fase berikutnya.
 **Belum dikerjakan:** 1.7 (Struk) dan seterusnya — lihat `docs/ROADMAP.md`.
 
-**Commit terakhir:** `f45e4a8` "feat: kolom No., nilai kosong '-', kontrol baris/halaman (maks 100)".
-**PENTING — working tree saat ini BELUM di-commit. Jalankan `git status` & `git diff` sebelum lanjut, jangan menganggap repo bersih:**
-- Perubahan **Fase 1.6 (checkout)**: `app/Actions/Transaction/CreateTransactionAction.php`, `app/Http/Controllers/Kasir/TransactionController.php`, `app/Http/Requests/Kasir/StoreTransactionRequest.php`, route `kasir.transaksi` / `kasir.transaksi.store` / `kasir.transaksi.selesai` (`routes/kasir.php`), halaman `resources/js/Pages/Kasir/Transaksi/{Index,Selesai}.vue` (menggantikan placeholder `Transaksi.vue`), `tests/Feature/Kasir/TransactionTest.php`, seed stok awal (`DatabaseSeeder`, `ProductSeeder`), penyesuaian review (`PaymentMethodSelector` prop `status`, tombol **Kembali** di `KasirLayout`, demo di `ComponentShowcase`), update docs (ROADMAP 1.6 dicentang, DECISIONS 5 entri Fase 1.6, DATABASE, UI).
-- Perubahan dari **luar sesi ini** (milik user/sesi lain — jangan dihapus, jangan dicampur ke satu commit tanpa konfirmasi): `docs/ROADMAP.md` bagian 1.12 + `docs/features/admin-global-search.md` (requirement Admin Global Search), **pesan validasi Bahasa Indonesia via `messages()` per Form Request** (8 file request termasuk `StoreTransactionRequest`, `tests/Feature/ValidationMessageTest.php`, entri DECISIONS teratas — `lang/id/` sempat ada lalu dihapus, locale tetap `en`).
+**Commit terakhir:** `f4e3b71` "feat: Fase 1.6 — Transaksi (checkout: cari/scan, keranjang, bayar, struk)". (Sebelumnya: pesan validasi `messages()` per Form Request di-commit `51afb0b` oleh sesi lain.)
+**Catatan working tree (BELUM di-commit — jalankan `git status` sebelum lanjut):** perubahan dari sesi lain: `docs/ROADMAP.md` bagian 1.12 (belum dicentang) + `docs/features/admin-global-search.md` (requirement Admin Global Search) — jangan dihapus, jangan dicampur ke commit tanpa konfirmasi.
 
 ## Yang Sudah Jadi (Verified, Bukan Asumsi)
 
@@ -107,8 +105,9 @@ Baca file-file ini secara berurutan sebelum mulai kerja apa pun:
 
 Lanjutkan dari Fase 1.7 (Struk) di docs/ROADMAP.md —
 baca docs/features/checkout.md (langkah 10) & docs/DECISIONS.md
-keputusan Fase 1.6 dulu. CATATAN: perubahan Fase 1.6 masih di working tree
-(belum commit) sampai user menyetujui — cek `git status` dulu.
+keputusan Fase 1.6 dulu. CATATAN: masih ada perubahan docs milik
+sesi lain yang belum di-commit (ROADMAP 1.12 +
+docs/features/admin-global-search.md) — cek `git status`, jangan dihapus.
 Jalankan `php artisan test` setelah tiap perubahan, jangan nyatakan selesai
 tanpa verifikasi nyata (migration benar-benar jalan, test benar-benar lulus).
 ```
