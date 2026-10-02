@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Search } from '@lucide/vue';
+import { Eye, EyeOff, Search } from '@lucide/vue';
+import { computed, ref } from 'vue';
 
-withDefaults(
+const props = withDefaults(
     defineProps<{
         type?: 'text' | 'number' | 'password' | 'search' | 'email';
         placeholder?: string;
@@ -19,6 +20,18 @@ withDefaults(
 defineEmits<{
     'update:modelValue': [value: string];
 }>();
+
+// Toggle lihat/sembunyikan password — berlaku otomatis di semua field
+// type="password" (Login, Reset Password, ganti password, dll).
+const showPassword = ref(false);
+
+const resolvedType = computed(() => {
+    if (props.type !== 'password') {
+        return props.type === 'search' ? 'text' : props.type;
+    }
+
+    return showPassword.value ? 'text' : 'password';
+});
 </script>
 
 <template>
@@ -29,7 +42,7 @@ defineEmits<{
             aria-hidden="true"
         />
         <input
-            :type="type === 'search' ? 'text' : type"
+            :type="resolvedType"
             :value="modelValue"
             :placeholder="placeholder"
             :disabled="disabled"
@@ -37,6 +50,7 @@ defineEmits<{
             :class="[
                 invalid ? 'border-danger focus:ring-danger' : 'border-border',
                 type === 'search' ? 'pl-9' : '',
+                type === 'password' ? 'pr-9' : '',
             ]"
             @input="
                 $emit(
@@ -45,5 +59,18 @@ defineEmits<{
                 )
             "
         />
+        <button
+            v-if="type === 'password'"
+            type="button"
+            tabindex="-1"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-muted"
+            :aria-label="
+                showPassword ? 'Sembunyikan password' : 'Lihat password'
+            "
+            @click="showPassword = !showPassword"
+        >
+            <EyeOff v-if="showPassword" class="h-4 w-4" aria-hidden="true" />
+            <Eye v-else class="h-4 w-4" aria-hidden="true" />
+        </button>
     </div>
 </template>
