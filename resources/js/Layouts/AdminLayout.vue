@@ -4,9 +4,10 @@
 // Admin. Route belum ada (Fase 1.3+), href sementara "#" — diisi saat
 // routes/admin.php dibuat.
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import Toast from '@/Components/Toast.vue';
 import type { PageProps } from '@/types';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import {
     BarChart3,
     ChevronDown,
@@ -78,6 +79,14 @@ function toggleGroup(label: string) {
     } else {
         openGroups.value.add(label);
     }
+}
+
+// Logout adalah aksi berisiko (mengakhiri sesi kerja) — wajib dialog
+// konfirmasi, tidak langsung eksekusi. Lihat docs/UI.md Prinsip Desain.
+const showLogoutConfirm = ref(false);
+
+function logout() {
+    router.post(route('logout'));
 }
 </script>
 
@@ -182,15 +191,14 @@ function toggleGroup(label: string) {
                     <span class="text-sm text-text-muted">{{
                         page.props.auth.user.name
                     }}</span>
-                    <Link
-                        href="/logout"
-                        method="post"
-                        as="button"
+                    <button
+                        type="button"
                         class="rounded-control p-1.5 text-text-muted hover:bg-background hover:text-danger"
                         aria-label="Logout"
+                        @click="showLogoutConfirm = true"
                     >
                         <LogOut class="h-4 w-4" />
-                    </Link>
+                    </button>
                 </div>
             </header>
 
@@ -200,5 +208,15 @@ function toggleGroup(label: string) {
         </div>
 
         <Toast />
+
+        <ConfirmDialog
+            :show="showLogoutConfirm"
+            title="Keluar dari akun?"
+            message="Anda akan keluar dari sesi ini dan perlu login kembali untuk melanjutkan."
+            confirm-label="Keluar"
+            danger
+            @confirm="logout"
+            @cancel="showLogoutConfirm = false"
+        />
     </div>
 </template>
