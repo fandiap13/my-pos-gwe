@@ -10,6 +10,33 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 
 ---
 
+### [2026-10-02] Halaman register publik & Welcome landing page dihapus
+- **Keputusan:** Route `/register` (`RegisteredUserController`, `Register.vue`), halaman landing `/` (`Welcome.vue`), dan test `RegistrationTest` dihapus. `/` sekarang redirect langsung ke `/login`.
+- **Alasan:** `docs/features/auth-login.md` sudah menetapkan "tidak ada self-registration publik, hanya Admin yang bisa membuat user baru" — tapi route register bawaan Breeze masih aktif dan baru ketahuan saat test gagal karena kolom `role` (wajib, `NOT NULL`) tidak diisi oleh `RegisteredUserController`. Sekalian dibersihkan karena memang bertentangan dengan arsitektur yang sudah diputuskan. `Welcome.vue` juga dihapus karena bukan bagian dari `docs/UI.md` manapun (aplikasi internal POS, bukan produk dengan landing page publik).
+- **Alternatif yang ditolak:** Isi default `role` di `RegisteredUserController` supaya test lulus, biarkan halaman register tetap ada — ditolak karena hanya menutupi gejala, bukan memperbaiki pertentangan arsitektur yang sudah didokumentasikan sebelumnya.
+- **Dampak:** Pembuatan user sepenuhnya jadi tanggung jawab fitur **Manajemen User (Admin)** di `docs/ROADMAP.md` Fase 1.9. Route `/dashboard` & `Dashboard.vue` bawaan Breeze untuk sementara dibiarkan apa adanya — akan disesuaikan ke `Pages/Admin/` & `Pages/Kasir/` saat Fase 1.2 (Autentikasi & Role).
+
+---
+
+### [2026-10-02] Fitur "Delete Account" bawaan Breeze dihapus dari halaman Profile
+- **Keputusan:** Route `DELETE /profile`, method `ProfileController::destroy()`, komponen `DeleteUserForm.vue`, dan test terkait dihapus. Halaman Profile hanya menyisakan update info profil & password.
+- **Alasan:** Setelah `users` dibuat `SoftDeletes` (lihat `AGENTS.md`), `$user->delete()` bawaan Breeze menjadi soft-delete, bukan hard-delete — berbenturan dengan test bawaan yang mengharapkan `$user->fresh()` jadi `null`. Lebih penting: user menghapus akunnya sendiri tidak sesuai `docs/PRD.md` §4 — admin/kasir seharusnya **dinonaktifkan** oleh admin (`is_active = false`), bukan dihapus sendiri, supaya riwayat transaksi/shift yang terkait tetap bisa ditelusuri.
+- **Alternatif yang ditolak:** Pertahankan fitur, update test supaya sesuai perilaku soft-delete — ditolak karena user POS (kasir) seharusnya memang tidak pernah bisa menghapus akunnya sendiri; ini bukan masalah teknis yang perlu "diperbaiki", tapi fitur yang memang tidak sesuai kebutuhan aplikasi.
+- **Dampak:** Manajemen nonaktif/aktif user jadi tanggung jawab fitur **Manajemen User (Admin)** di `docs/ROADMAP.md` Fase 1.9, bukan halaman Profile.
+
+---
+
+### [2026-10-02] Cache products.stock dihitung ulang via Model Observer
+- **Keputusan:** Kolom cache `products.stock` dihitung ulang otomatis lewat `StockMovementObserver` setiap kali ada row `stock_movements` baru (event `created`). Hasilnya: `SUM(quantity WHERE type IN (in, adjustment, void_return)) - SUM(quantity WHERE type = out)`.
+- **Alasan:** `docs/DATABASE.md` menandai ini "perlu diputuskan saat implementasi Fase 1". Observer dipilih karena konsisten di manapun `StockMovement::create()` dipanggil (checkout, void, adjustment manual) tanpa perlu tiap Action menghitung ulang stock secara manual, dan lebih cepat dibanding hitung on-the-fly tiap request (penting untuk listing/laporan produk).
+- **Alternatif yang ditolak:** Hitung on-the-fly tiap request (akurat tapi lambat untuk listing besar); database trigger (tidak terlihat dari kode PHP, menyulitkan debugging dan tidak sejalan dengan prinsip "logic bisnis di app/Actions" di `AGENTS.md`).
+- **Dampak:**
+  - `app/Observers/StockMovementObserver.php`, didaftarkan di `AppServiceProvider::boot()`.
+  - Seeder (`ProductFactory`) sengaja BYPASS observer ini (isi `stock` langsung) untuk data dummy — dikomentari eksplisit di factory. Action sungguhan (checkout, dll) WAJIB tetap lewat `StockMovement::create()`.
+  - Lihat `docs/DATABASE.md` tabel `stock_movements` & `products`.
+
+---
+
 ### [2026-10-02] Cetak struk pakai window.print(), bukan ESC/POS
 - **Keputusan:** Cetak struk sementara menggunakan `window.print()` dari browser (halaman HTML yang diformat untuk ukuran kertas thermal 58mm/80mm), bukan library ESC/POS.
 - **Alasan:** Server Laravel tidak bisa langsung menyentuh printer USB yang terpasang di komputer kasir. ESC/POS asli butuh perantara seperti QZ Tray atau print agent lokal yang harus diinstal di tiap komputer kasir — kompleksitas ini belum dibutuhkan di versi awal.

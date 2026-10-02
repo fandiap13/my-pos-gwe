@@ -7,7 +7,8 @@ Checklist pengerjaan. Centang `[x]` setelah fitur selesai dan teruji.
 - [x] Install starter kit Inertia + Vue (TypeScript) — `php artisan install:api` tidak dipakai; pakai `laravel new --vue --typescript` atau breeze/jetstream varian Inertia-Vue-TS
 - [x] Setup koneksi database PostgreSQL di `.env` (local) — pastikan `pgsql` extension aktif di PHP
 - [x] Setup Tailwind CSS (biasanya sudah ikut starter kit, tinggal verifikasi)
-- [x] Install & setup Pest (`php artisan pest:install` kalau belum ikut starter kit)
+- [x] Install & setup Pest (`ph
+p artisan pest:install` kalau belum ikut starter kit)
 - [x] Install & setup `darkaonline/l5-swagger`, pastikan `/api/documentation` bisa diakses (boleh kosong dulu, isi API-nya nanti)
 - [x] Buat struktur folder tambahan: `app/Actions/`, `app/Services/`, `resources/js/types/`
 - [x] Setup auth bawaan starter kit (login/register/logout) — sesuaikan nanti dengan role di `docs/PRD.md`
@@ -18,16 +19,16 @@ Checklist pengerjaan. Centang `[x]` setelah fitur selesai dan teruji.
 ## Fase 1 — Core POS
 
 ### 1.1 Fondasi Data
-- [ ] Migration `store_settings` (single-row: nama toko, timezone, alamat, telepon) + seeder default
-- [ ] Migration `users` tambahan (`role`, `is_active`) di atas default Laravel — pastikan PK UUID (`HasUuids`)
-- [ ] Migration `categories` (self-referencing, `parent_id`)
-- [ ] Migration `products` (termasuk `stock` sebagai kolom cache, `min_stock`)
-- [ ] Migration `shifts`
-- [ ] Migration `transactions` (termasuk kolom void: `voided_by`, `voided_at`, `void_reason`)
-- [ ] Migration `transaction_items`
-- [ ] Migration `stock_movements` (polymorphic `reference_type`/`reference_id`)
-- [ ] Factory + seeder dummy untuk `categories` & `products` (data development)
-- [ ] Model Eloquent untuk semua tabel di atas, pakai trait `HasUuids`, relasi sesuai `docs/DATABASE.md`
+- [x] Migration `store_settings` (single-row: nama toko, timezone, alamat, telepon) + seeder default
+- [x] Migration `users` tambahan (`role`, `is_active`) di atas default Laravel — pastikan PK UUID (`HasUuids`)
+- [x] Migration `categories` (self-referencing, `parent_id`)
+- [x] Migration `products` (termasuk `stock` sebagai kolom cache, `min_stock`)
+- [x] Migration `shifts`
+- [x] Migration `transactions` (termasuk kolom void: `voided_by`, `voided_at`, `void_reason`)
+- [x] Migration `transaction_items`
+- [x] Migration `stock_movements` (polymorphic `reference_type`/`reference_id`)
+- [x] Factory + seeder dummy untuk `categories` & `products` (data development)
+- [x] Model Eloquent untuk semua tabel di atas, pakai trait `HasUuids`, relasi sesuai `docs/DATABASE.md`
 
 ### 1.2 Autentikasi & Role
 - [ ] Implementasi sesuai `docs/features/auth-login.md`
