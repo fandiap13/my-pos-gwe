@@ -43,6 +43,38 @@ test('product index returns flat paginator shape matching frontend Paginated<T>'
     );
 });
 
+test('product list honors per_page query parameter', function () {
+    $admin = admin();
+    Product::factory()->count(3)->create();
+
+    $response = $this->actingAs($admin)->get(
+        route('admin.products.index', ['per_page' => 2]),
+    );
+
+    $response->assertOk()->assertInertia(
+        fn ($page) => $page
+            ->has('products.data', 2)
+            ->where('products.per_page', 2)
+            ->where('products.total', 3),
+    );
+});
+
+// per_page dibatasi 1..100 di Controller::perPage — nilai liar dari URL
+// tidak boleh membuat query tanpa batas (dan tetap menampilkan data,
+// bukan error validasi).
+test('product list caps per_page at 100 rows', function () {
+    $admin = admin();
+    Product::factory()->create();
+
+    $response = $this->actingAs($admin)->get(
+        route('admin.products.index', ['per_page' => 1000]),
+    );
+
+    $response->assertOk()->assertInertia(
+        fn ($page) => $page->where('products.per_page', 100),
+    );
+});
+
 test('admin can create a product with initial stock recorded as stock movement', function () {
     $admin = admin();
     $category = Category::factory()->create();

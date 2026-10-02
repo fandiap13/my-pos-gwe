@@ -82,7 +82,7 @@ class ShiftController extends Controller
         $shifts = Shift::query()
             ->where('user_id', $request->user()->id)
             ->orderByDesc('opened_at')
-            ->paginate(15)
+            ->paginate($this->perPage($request))
             ->withQueryString();
 
         return Inertia::render('Kasir/Shift/Riwayat', [

@@ -73,6 +73,7 @@ function destroy() {
 
                 <Table v-else>
                     <template #head>
+                        <th class="w-12">No.</th>
                         <th>Nama</th>
                         <th>Parent</th>
                         <th class="text-right">Produk</th>
@@ -81,12 +82,15 @@ function destroy() {
                     </template>
                     <template #body>
                         <tr
-                            v-for="category in categories.data"
+                            v-for="(category, index) in categories.data"
                             :key="category.id"
                         >
+                            <td class="tabular-nums text-text-muted">
+                                {{ index + 1 }}
+                            </td>
                             <td class="font-medium">{{ category.name }}</td>
                             <td class="text-text-muted">
-                                {{ category.parent_name ?? '—' }}
+                                {{ category.parent_name ?? '-' }}
                             </td>
                             <td class="text-right tabular-nums">
                                 {{ category.products_count }}

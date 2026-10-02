@@ -82,6 +82,11 @@ Dibangun di Fase 1.2 (`docs/ROADMAP.md`), sebelum halaman fitur dibuat. Semua di
 ### Dasar (generik, dipakai di Admin maupun Kasir)
 `Button`, `Input`, `MoneyInput` (format Rupiah, tanpa desimal), `Textarea`, `Select`, `Checkbox`, `Radio`, `FormField` (label + input + error), `Badge`, `StatusBadge` (status `completed`/`voided`, `open`/`closed`, stok menipis/habis), `Card`, `Modal`, `ConfirmDialog` (aksi berisiko: void, tutup shift selisih), `Dropdown`, `Tooltip`, `Alert`, `Toast`, `Spinner`, `Skeleton`, `EmptyState`, `Pagination`, `Table`, `TableActions`, `Tabs`, `Breadcrumb`, `DatePicker`, `DateRangePicker` (filter Laporan & Riwayat Transaksi).
 
+**Aturan tabel daftar** (lihat `docs/DECISIONS.md`):
+- Kolom pertama selalu **No.** — nomor urut lanjutan antar halaman (`(current_page - 1) * per_page + index + 1`), bukan mulai dari 1 lagi di tiap halaman.
+- Sel nilai kosong menampilkan `-`, bukan `—`.
+- `Pagination` menampilkan info "Menampilkan X–Y dari Z data" + kontrol **Baris/halaman** (10/15/25/50/100, default 15, maksimal 100 — dibatasi juga di backend `Controller::perPage`). Ganti baris/halaman mempertahankan filter aktif dan mereset `page` ke 1; link nomor halaman hanya muncul kalau `last_page > 1`.
+
 ### Khusus POS (konteks checkout/kasir)
 `ProductSearch` (cari produk nama/SKU/barcode), `ProductCard`, `CartItem`, `QuantityInput` (+/−), `PaymentMethodSelector` (cash/transfer/debit), `PaymentSummary` (subtotal/total/kembalian), `ReceiptPreview` (struk 58mm/80mm, dipakai di Transaksi & cetak ulang Riwayat).
 

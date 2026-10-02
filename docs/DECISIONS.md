@@ -10,6 +10,22 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 
 ---
 
+### [2026-10-02] Kontrol baris/halaman di Pagination, `per_page` dibatasi 1..100
+- **Keputusan:** Semua halaman daftar yang punya pagination menampilkan kontrol **Baris/halaman** (opsi 10/15/25/50/100, default 15) di dalam komponen `Pagination`, di samping teks "Menampilkan X–Y dari Z data". Nilai query `per_page` dibatasi 1..100 lewat method base `Controller::perPage()` — **bukan** Form Request.
+- **Alasan:** Permintaan user supaya client tidak perlu mengetab banyak saat data banyak, dengan batas atas 100 baris supaya query tetap ringan. `per_page` bukan input form: nilainya dibatasi/dibulatkan (bukan ditolak), sehingga URL yang tidak valid tetap menampilkan data wajar alih-alih error validasi, dan tidak perlu satu Form Request per endpoint index.
+- **Alternatif yang ditolak:** Form Request `max:100` per endpoint (UX jelek untuk query param & menambah class hanya untuk satu parameter); tanpa batas atas (query bisa minta jutaan baris).
+- **Dampak:** Filter aktif (search/kategori/status) harus tetap ikut terkirim saat user ganti baris/halaman — `Pagination` membangun URL dari query string saat ini lalu mereset `page` ke 1, dan watcher filter di tiap halaman list ikut mengirim `per_page` aktif.
+
+---
+
+### [2026-10-02] Tabel daftar: kolom `No.` pertama, nilai kosong pakai `-`
+- **Keputusan:** Semua tabel daftar (data list) punya kolom pertama **No.** dengan nomor urut lanjutan antar halaman (`(current_page - 1) * per_page + index + 1`, bukan mulai dari 1 lagi di tiap halaman). Sel nilai kosong menampilkan `-` (hyphen), **bukan** `—` (em dash).
+- **Alasan:** Permintaan user — nomor urut memudahkan menyebut baris saat diskusi/print, dan em dash memberi kesan konten hasil generate otomatis ("AI slop") di data toko yang dipakai harian.
+- **Alternatif yang ditolak:** Nomor urut per halaman selalu mulai dari 1 (membingungkan saat baris sedang dibahas lintas halaman); menampilkan `—` (dicap user sebagai kesan auto-generated).
+- **Dampak:** Kolom `No.` ikut ditambahkan ke tabel Shift (admin & kasir) yang sudah ada, supaya konsisten. Berlaku juga untuk tabel baru berikutnya (Stok, Transaksi, Laporan).
+
+---
+
 ### [2026-10-02] Fase 1.5: props single Resource wajib `->resolve()` (bug halaman Edit)
 - **Keputusan:** Saat mengirim **satu** model Resource ke Inertia, controller WAJIB menulis `(new XResource($model))->resolve()` (bukan `new XResource($model)` mentah). Berlaku juga untuk prop hasil paginasi via `->through()` seperti keputusan sebelumnya.
 - **Alasan:** Inertia me-resolve props lewat jalur `Responsable` (`ResourceResponse::toResponse()`), dan `JsonResource::$wrap` default-nya `'data'` — sehingga `new ProductResource($product)` tiba di frontend sebagai `{data: {...}}`, bukan object flat. Ini bikin halaman **Edit Produk & Edit Kategori membaca `props.product.name` = `undefined`** (form kosong, `route(..., props.product.id)` gagal) — ketahuan saat membangun Fase 1.5, sebelumnya tidak pernah ada test yang memeriksa shape props halaman Edit. `->resolve()` mengembalikan array flat hasil `toArray()` tanpa bungkusan.

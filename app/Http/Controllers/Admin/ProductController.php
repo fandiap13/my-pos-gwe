@@ -34,7 +34,7 @@ class ProductController extends Controller
                 fn ($query, $categoryId) => $query->where('category_id', $categoryId)
             )
             ->orderBy('name')
-            ->paginate(15)
+            ->paginate($this->perPage($request))
             ->withQueryString();
 
         return Inertia::render('Admin/Products/Index', [

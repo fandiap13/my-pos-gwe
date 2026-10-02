@@ -30,7 +30,7 @@ class ShiftController extends Controller
                 )
             )
             ->orderByDesc('opened_at')
-            ->paginate(15)
+            ->paginate($this->perPage($request))
             ->withQueryString();
 
         return Inertia::render('Admin/Shifts/Index', [

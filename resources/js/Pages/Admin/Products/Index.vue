@@ -30,12 +30,21 @@ const props = defineProps<{
 const search = ref(props.filters.search ?? '');
 const categoryId = ref<string | null>(props.filters.category_id ?? null);
 
+// Nomor urut baris — lanjutan dari halaman sebelumnya, bukan mulai dari 1
+// lagi di tiap halaman, supaya cocok dengan yang dilihat user.
+function rowNumber(index: number) {
+    return (
+        (props.products.current_page - 1) * props.products.per_page + index + 1
+    );
+}
+
 watch([search, categoryId], ([newSearch, newCategoryId]) => {
     router.get(
         route('admin.products.index'),
         {
             search: newSearch || undefined,
             category_id: newCategoryId || undefined,
+            per_page: props.products.per_page,
         },
         { preserveState: true, replace: true },
     );
@@ -124,6 +133,7 @@ function formatPrice(value: number) {
                 <template v-else>
                     <Table>
                         <template #head>
+                            <th class="w-12">No.</th>
                             <th>Nama</th>
                             <th>Kategori</th>
                             <th>SKU/Barcode</th>
@@ -134,15 +144,18 @@ function formatPrice(value: number) {
                         </template>
                         <template #body>
                             <tr
-                                v-for="product in products.data"
+                                v-for="(product, index) in products.data"
                                 :key="product.id"
                             >
+                                <td class="tabular-nums text-text-muted">
+                                    {{ rowNumber(index) }}
+                                </td>
                                 <td class="font-medium">{{ product.name }}</td>
                                 <td class="text-text-muted">
-                                    {{ product.category_name ?? '—' }}
+                                    {{ product.category_name ?? '-' }}
                                 </td>
                                 <td class="text-text-muted">
-                                    {{ product.sku ?? product.barcode ?? '—' }}
+                                    {{ product.sku ?? product.barcode ?? '-' }}
                                 </td>
                                 <td class="text-right tabular-nums">
                                     Rp {{ formatPrice(product.price) }}

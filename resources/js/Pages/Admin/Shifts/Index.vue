@@ -26,6 +26,7 @@ watch([search, status], ([newSearch, newStatus]) => {
         {
             search: newSearch || undefined,
             status: newStatus || undefined,
+            per_page: props.shifts.per_page,
         },
         { preserveState: true, replace: true },
     );
@@ -35,6 +36,12 @@ const statusOptions = [
     { value: 'open', label: 'Aktif' },
     { value: 'closed', label: 'Ditutup' },
 ];
+
+// Nomor urut baris — lanjutan dari halaman sebelumnya, bukan mulai dari 1
+// lagi di tiap halaman, supaya cocok dengan yang dilihat user.
+function rowNumber(index: number) {
+    return (props.shifts.current_page - 1) * props.shifts.per_page + index + 1;
+}
 
 function formatMoney(value: number) {
     return new Intl.NumberFormat('id-ID').format(value);
@@ -77,6 +84,7 @@ function formatMoney(value: number) {
             <template v-else>
                 <Table>
                     <template #head>
+                        <th class="w-12">No.</th>
                         <th>Kasir</th>
                         <th>Dibuka</th>
                         <th>Ditutup</th>
@@ -87,15 +95,21 @@ function formatMoney(value: number) {
                         <th>Status</th>
                     </template>
                     <template #body>
-                        <tr v-for="shift in shifts.data" :key="shift.id">
+                        <tr
+                            v-for="(shift, index) in shifts.data"
+                            :key="shift.id"
+                        >
+                            <td class="tabular-nums text-text-muted">
+                                {{ rowNumber(index) }}
+                            </td>
                             <td class="whitespace-nowrap">
-                                {{ shift.user_name ?? '—' }}
+                                {{ shift.user_name ?? '-' }}
                             </td>
                             <td class="whitespace-nowrap text-text-muted">
                                 {{ shift.opened_at }}
                             </td>
                             <td class="whitespace-nowrap text-text-muted">
-                                {{ shift.closed_at ?? '—' }}
+                                {{ shift.closed_at ?? '-' }}
                             </td>
                             <td class="text-right tabular-nums">
                                 Rp {{ formatMoney(shift.opening_cash) }}
@@ -103,14 +117,14 @@ function formatMoney(value: number) {
                             <td class="text-right tabular-nums">
                                 {{
                                     shift.expected_cash === null
-                                        ? '—'
+                                        ? '-'
                                         : `Rp ${formatMoney(shift.expected_cash)}`
                                 }}
                             </td>
                             <td class="text-right tabular-nums">
                                 {{
                                     shift.closing_cash === null
-                                        ? '—'
+                                        ? '-'
                                         : `Rp ${formatMoney(shift.closing_cash)}`
                                 }}
                             </td>
@@ -126,7 +140,7 @@ function formatMoney(value: number) {
                             >
                                 {{
                                     shift.cash_difference === null
-                                        ? '—'
+                                        ? '-'
                                         : `Rp ${formatMoney(shift.cash_difference)}`
                                 }}
                             </td>
