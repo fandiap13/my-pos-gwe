@@ -29,6 +29,7 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import Table from '@/Components/Table.vue';
 import Tabs from '@/Components/Tabs.vue';
 import Textarea from '@/Components/Textarea.vue';
+import Toast from '@/Components/Toast.vue';
 import { useToast } from '@/composables/useToast';
 import type { CartLine, Product } from '@/types/models';
 import { Head } from '@inertiajs/vue3';
@@ -347,4 +348,6 @@ const paidAmount = ref<number | null>(50000);
             </div>
         </Card>
     </div>
+
+    <Toast />
 </template>
