@@ -24,14 +24,14 @@ function format(value: number) {
 </script>
 
 <template>
-    <div class="space-y-2 text-sm">
+    <div class="space-y-2 text-base">
         <div class="flex justify-between text-text-muted">
             <span>Subtotal</span>
             <span class="tabular-nums">Rp {{ format(subtotal) }}</span>
         </div>
 
         <div
-            class="flex justify-between border-t border-border pt-2 text-base font-semibold text-text"
+            class="flex justify-between border-t border-border pt-2 text-lg font-semibold text-text"
         >
             <span>Total</span>
             <span class="tabular-nums">Rp {{ format(total) }}</span>
@@ -47,7 +47,7 @@ function format(value: number) {
 
         <div
             v-if="changeAmount !== null"
-            class="flex justify-between text-lg font-bold text-primary-dark"
+            class="flex justify-between text-xl font-bold text-primary-dark"
         >
             <span>Kembalian</span>
             <span class="tabular-nums">Rp {{ format(changeAmount) }}</span>

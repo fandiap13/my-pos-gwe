@@ -27,7 +27,7 @@ const methods: {
             v-for="method in methods"
             :key="method.value"
             type="button"
-            class="flex flex-col items-center gap-1.5 rounded-control border p-3 text-sm transition-colors"
+            class="flex flex-col items-center gap-1.5 rounded-control border p-3 text-base transition-colors"
             :class="
                 modelValue === method.value
                     ? 'border-primary-dark bg-primary-light text-primary-dark'

@@ -7,6 +7,7 @@
 - **Responsive, prioritas desktop/tablet.** Kasir kemungkinan pakai PC/tablet di meja kasir (bukan HP), tapi halaman admin/laporan tetap harus bisa dibuka dari HP untuk pemilik toko yang mobile.
 - **State stok & shift selalu terlihat.** Kasir harus selalu tahu: shift sedang aktif atau tidak, dan kalau stok produk yang dicari menipis/habis.
 - **Segar & bersih.** Brand hijau dipilih karena toko mengutamakan kesegaran produk. Tampilan terang, lega, dan tidak ramai — warna hijau dipakai untuk aksi utama dan penanda aktif, bukan untuk dekorasi.
+- **Ramah segala usia.** Target pengguna termasuk kasir lanjut usia (ada yang rabun dekat) — teks isi (input, label, tombol, isi tabel, teks transaksi) minimal `text-base` (16px), bukan `text-sm` (14px). `text-sm`/`text-xs` hanya untuk metadata sekunder (helper text, header kolom tabel, timestamp, badge).
 
 ## Daftar Halaman
 

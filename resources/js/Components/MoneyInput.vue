@@ -45,7 +45,7 @@ function handleInput(event: Event) {
 <template>
     <div class="relative">
         <span
-            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-muted"
+            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-text-muted"
         >
             Rp
         </span>
@@ -55,7 +55,7 @@ function handleInput(event: Event) {
             :value="displayValue"
             :placeholder="placeholder"
             :disabled="disabled"
-            class="w-full rounded-control border bg-surface py-2 pl-9 pr-3 text-right text-sm tabular-nums text-text placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary-dark disabled:cursor-not-allowed disabled:bg-background disabled:text-text-faint"
+            class="w-full rounded-control border bg-surface py-2 pl-9 pr-3 text-right text-base tabular-nums text-text placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary-dark disabled:cursor-not-allowed disabled:bg-background disabled:text-text-faint"
             :class="
                 invalid ? 'border-danger focus:ring-danger' : 'border-border'
             "

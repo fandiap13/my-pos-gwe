@@ -34,7 +34,7 @@ const icon = computed(() => icons[props.tone]);
 <template>
     <div class="flex gap-3 rounded-control p-4" :class="toneClasses[tone]">
         <component :is="icon" class="h-5 w-5 shrink-0" aria-hidden="true" />
-        <div class="text-sm">
+        <div class="text-base">
             <p v-if="title" class="font-medium">{{ title }}</p>
             <div class="text-text-muted"><slot /></div>
         </div>

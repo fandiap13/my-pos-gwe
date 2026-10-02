@@ -20,7 +20,7 @@ defineEmits<{
             v-for="tab in tabs"
             :key="tab.value"
             type="button"
-            class="border-b-2 px-4 py-2 text-sm font-medium transition-colors"
+            class="border-b-2 px-4 py-2 text-base font-medium transition-colors"
             :class="
                 modelValue === tab.value
                     ? 'border-primary-dark text-primary-dark'

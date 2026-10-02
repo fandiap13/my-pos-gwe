@@ -40,7 +40,7 @@ function increment() {
         >
             <Minus class="h-3.5 w-3.5" />
         </button>
-        <span class="w-8 text-center text-sm tabular-nums text-text">{{
+        <span class="w-8 text-center text-base tabular-nums text-text">{{
             modelValue
         }}</span>
         <button

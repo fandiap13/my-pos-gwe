@@ -6,10 +6,10 @@
 
 <template>
     <div class="overflow-hidden rounded-card border border-border bg-surface">
-        <table class="w-full text-left text-sm">
+        <table class="w-full text-left text-base">
             <thead class="border-b border-border bg-background">
                 <tr
-                    class="[&>th]:px-4 [&>th]:py-3 [&>th]:font-medium [&>th]:text-text-faint"
+                    class="[&>th]:px-4 [&>th]:py-3 [&>th]:text-sm [&>th]:font-medium [&>th]:text-text-faint"
                 >
                     <slot name="head" />
                 </tr>

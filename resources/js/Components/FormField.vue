@@ -14,7 +14,10 @@ withDefaults(
 
 <template>
     <div>
-        <label v-if="label" class="mb-1.5 block text-sm font-medium text-text">
+        <label
+            v-if="label"
+            class="mb-1.5 block text-base font-medium text-text"
+        >
             {{ label }}
             <span v-if="required" class="text-danger">*</span>
         </label>

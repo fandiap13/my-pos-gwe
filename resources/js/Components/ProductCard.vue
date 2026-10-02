@@ -36,13 +36,13 @@ const formattedPrice = computed(() =>
         @click="$emit('select', product)"
     >
         <div class="flex w-full items-start justify-between gap-2">
-            <p class="text-sm font-medium text-text">{{ product.name }}</p>
+            <p class="text-base font-medium text-text">{{ product.name }}</p>
             <StatusBadge
                 v-if="stockStatus !== 'in_stock'"
                 :status="stockStatus"
             />
         </div>
-        <p class="text-base font-semibold tabular-nums text-text">
+        <p class="text-lg font-semibold tabular-nums text-text">
             Rp {{ formattedPrice }}
         </p>
         <p class="text-xs text-text-faint">Stok: {{ product.stock }}</p>

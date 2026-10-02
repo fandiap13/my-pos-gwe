@@ -25,7 +25,7 @@ const subtotal = computed(() =>
         class="flex items-center gap-3 border-b border-border py-3 last:border-0"
     >
         <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-text">
+            <p class="truncate text-base font-medium text-text">
                 {{ line.product.name }}
             </p>
             <p class="text-xs text-text-faint">
@@ -42,7 +42,7 @@ const subtotal = computed(() =>
         />
 
         <p
-            class="w-24 shrink-0 text-right text-sm font-semibold tabular-nums text-text"
+            class="w-24 shrink-0 text-right text-base font-semibold tabular-nums text-text"
         >
             Rp {{ subtotal }}
         </p>
