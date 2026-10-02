@@ -30,68 +30,13 @@ Checklist pengerjaan. Centang `[x]` setelah fitur selesai dan teruji.
 - [x] Model Eloquent untuk semua tabel di atas, pakai trait `HasUuids`, relasi sesuai `docs/DATABASE.md`
 
 ### 1.2 Design System & Komponen Dasar
-
-> Dikerjakan sebelum halaman apa pun dibuat — semua fase berikutnya bergantung pada ini supaya tidak ada restyle ulang. Lihat `docs/UI.md` bagian "Design Tokens".
-
-- [ ] Tentukan design tokens (warna primer/sekunder, warna status, background, border, text, font, spacing, radius, shadow) — isi `docs/UI.md`
-
-- [ ] Terapkan design tokens ke konfigurasi Tailwind
-
-- [ ] Komponen dasar reusable di `resources/js/Components/`:
-
-* [ ] `Button.vue` — primary, secondary, outline, ghost, danger, loading, disabled
-* [ ] `Input.vue` — text, number, password, search
-* [ ] `MoneyInput.vue` — input nominal rupiah dengan formatting
-* [ ] `Textarea.vue`
-* [ ] `Select.vue`
-* [ ] `Checkbox.vue`
-* [ ] `Radio.vue`
-* [ ] `FormField.vue` — label, input, helper text, validation error
-* [ ] `Badge.vue`
-* [ ] `StatusBadge.vue`
-* [ ] `Card.vue`
-* [ ] `Modal.vue`
-* [ ] `ConfirmDialog.vue`
-* [ ] `Dropdown.vue`
-* [ ] `Tooltip.vue`
-* [ ] `Alert.vue`
-* [ ] `Toast.vue`
-* [ ] `Spinner.vue`
-* [ ] `Skeleton.vue`
-* [ ] `EmptyState.vue`
-* [ ] `Pagination.vue`
-* [ ] `Table.vue`
-* [ ] `TableActions.vue`
-* [ ] `Tabs.vue`
-* [ ] `Breadcrumb.vue`
-* [ ] `DatePicker.vue`
-* [ ] `DateRangePicker.vue`
-
-- [ ] Komponen khusus POS:
-
-* [ ] `ProductSearch.vue` — pencarian produk berdasarkan nama/SKU/barcode
-* [ ] `ProductCard.vue` — tampilan produk untuk kasir
-* [ ] `CartItem.vue` — item dalam keranjang
-* [ ] `QuantityInput.vue` — tambah/kurang quantity
-* [ ] `PaymentMethodSelector.vue` — cash, transfer, debit
-* [ ] `PaymentSummary.vue` — subtotal, total, pembayaran, kembalian
-* [ ] `ReceiptPreview.vue` — preview struk 58mm/80mm
-
-- [ ] Layout dasar:
-
-* [ ] `AdminLayout.vue` — sidebar + header + content area untuk `Pages/Admin/`
-* [ ] `KasirLayout.vue` — layout minim distraksi untuk `Pages/Kasir/`
-* [ ] `AuthLayout.vue` — layout halaman login/authentication
-
-- [ ] Buat component showcase untuk memverifikasi seluruh komponen dan state UI secara visual
-
-- [ ] Terapkan design system ke 1 halaman contoh (misalnya halaman Login) untuk verifikasi visual sebelum digunakan di halaman lain
-
-- [ ] Pastikan seluruh komponen memiliki state yang diperlukan: default, hover, focus, active, disabled, loading, error, dan jika relevan empty state
-
-- [ ] Dokumentasikan aturan penggunaan komponen di `docs/UI.md`
-
-- [ ] Finalisasi design system sebelum masuk ke implementasi halaman fitur
+> Dikerjakan sebelum halaman apa pun dibuat — semua fase berikutnya bergantung pada ini. Daftar lengkap komponen & aturan state ada di `docs/UI.md` bagian "Komponen UI" & "Design Tokens" — jangan duplikasi daftarnya di sini, cukup checklist progres per kelompok.
+- [ ] Design tokens ditentukan & diterapkan ke konfigurasi Tailwind
+- [ ] Komponen dasar (Button, Input, Badge, Modal, Table, dll — lihat `docs/UI.md`) selesai dibuat
+- [ ] Komponen khusus POS (ProductSearch, CartItem, PaymentSummary, ReceiptPreview, dll) selesai dibuat
+- [ ] Layout (`AdminLayout`, `KasirLayout`, `AuthLayout`) selesai dibuat
+- [ ] Component showcase dibuat untuk verifikasi visual seluruh komponen & state
+- [ ] Diterapkan ke 1 halaman contoh (Login) dan diverifikasi sebelum dipakai di halaman lain
 
 ### 1.3 Autentikasi & Role
 - [ ] Implementasi sesuai `docs/features/auth-login.md`

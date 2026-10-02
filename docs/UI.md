@@ -71,15 +71,20 @@
 3. Produk dengan stok = 0 **diblokir dari checkout**: tidak bisa ditambah ke keranjang (search/scan menampilkan badge "Stok Habis", tombol tambah nonaktif). Kalau produk sudah telanjur ada di keranjang lalu stok berubah jadi 0 (race condition, misal 2 kasir checkout bersamaan), validasi ulang stok dilakukan di server saat submit — tampilkan error dan keluarkan item itu dari keranjang.
 4. Stok tidak pernah minus. Koreksi stok (misal admin temukan barang fisik tambahan) dilakukan lewat halaman **Stok — Penyesuaian Manual** (`stock_movements` type `adjustment`), bukan lewat transaksi.
 
-## Komponen UI yang Dipakai Berulang
-- **ProductSearchInput** — search box dengan autocomplete produk (nama/SKU/barcode), dipakai di halaman Transaksi.
-- **CartTable** — tabel keranjang belanja dengan kontrol quantity (+/-), dipakai di halaman Transaksi.
-- **MoneyInput** — input angka khusus format Rupiah (tanpa desimal, auto-format ribuan), dipakai di semua form harga/pembayaran.
-- **StatusBadge** — badge warna untuk status (`completed`/`voided`, `open`/`closed`, stok menipis), konsisten di seluruh tabel.
-- **ConfirmDialog** — dialog konfirmasi generik untuk aksi berisiko (void, hapus, tutup shift dengan selisih).
-- **DateRangeFilter** — filter rentang tanggal, dipakai di Laporan & Riwayat Transaksi.
-- **ReceiptPreview** — komponen cetak struk (format thermal 58mm/80mm), dipakai di Transaksi (setelah checkout) dan Riwayat Transaksi (cetak ulang).
-- **RoleGuardLayout** — layout wrapper yang cek role & shift aktif (khusus Kasir), redirect kalau tidak memenuhi syarat.
+## Komponen UI
+
+Dibangun di Fase 1.2 (`docs/ROADMAP.md`), sebelum halaman fitur dibuat. Semua di `resources/js/Components/`, kecuali Layout.
+
+### Dasar (generik, dipakai di Admin maupun Kasir)
+`Button`, `Input`, `MoneyInput` (format Rupiah, tanpa desimal), `Textarea`, `Select`, `Checkbox`, `Radio`, `FormField` (label + input + error), `Badge`, `StatusBadge` (status `completed`/`voided`, `open`/`closed`, stok menipis/habis), `Card`, `Modal`, `ConfirmDialog` (aksi berisiko: void, tutup shift selisih), `Dropdown`, `Tooltip`, `Alert`, `Toast`, `Spinner`, `Skeleton`, `EmptyState`, `Pagination`, `Table`, `TableActions`, `Tabs`, `Breadcrumb`, `DatePicker`, `DateRangePicker` (filter Laporan & Riwayat Transaksi).
+
+### Khusus POS (konteks checkout/kasir)
+`ProductSearch` (cari produk nama/SKU/barcode), `ProductCard`, `CartItem`, `QuantityInput` (+/−), `PaymentMethodSelector` (cash/transfer/debit), `PaymentSummary` (subtotal/total/kembalian), `ReceiptPreview` (struk 58mm/80mm, dipakai di Transaksi & cetak ulang Riwayat).
+
+### Layout
+`AdminLayout` (sidebar + header, `Pages/Admin/`), `KasirLayout` (minim distraksi, `Pages/Kasir/`), `AuthLayout` (halaman login).
+
+**Aturan:** setiap komponen punya state default/hover/focus/active/disabled/loading/error (+ empty state kalau relevan). Cek role & shift aktif kasir ditangani middleware Laravel (`role:admin`, `EnsureShiftActive` — lihat `AGENTS.md`), bukan komponen Vue terpisah.
 
 ## Hal yang Masih Perlu Diputuskan
 - Modal inline vs halaman terpisah untuk tambah kategori cepat dari form produk.
