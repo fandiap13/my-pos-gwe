@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import Button from '@/Components/Button.vue';
+import FormField from '@/Components/FormField.vue';
+import Input from '@/Components/Input.vue';
+import type { PageProps } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 
 defineProps<{
-    mustVerifyEmail?: Boolean;
-    status?: String;
+    mustVerifyEmail?: boolean;
+    status?: string;
 }>();
 
-const user = usePage().props.auth.user;
+const user = usePage<PageProps>().props.auth.user;
 
 const form = useForm({
     name: user.name,
@@ -21,73 +21,59 @@ const form = useForm({
 <template>
     <section>
         <header>
-            <h2 class="text-lg font-medium text-gray-900">
-                Profile Information
-            </h2>
-
-            <p class="mt-1 text-sm text-gray-600">
-                Update your account's profile information and email address.
+            <h2 class="text-base font-semibold text-text">Informasi Profil</h2>
+            <p class="mt-1 text-sm text-text-muted">
+                Perbarui nama dan email akun Anda.
             </p>
         </header>
 
         <form
+            class="mt-6 space-y-4"
             @submit.prevent="form.patch(route('profile.update'))"
-            class="mt-6 space-y-6"
         >
-            <div>
-                <InputLabel for="name" value="Name" />
-
-                <TextInput
+            <FormField label="Nama" :error="form.errors.name" required>
+                <Input
                     id="name"
-                    type="text"
-                    class="mt-1 block w-full"
                     v-model="form.name"
-                    required
                     autofocus
                     autocomplete="name"
+                    :invalid="!!form.errors.name"
                 />
+            </FormField>
 
-                <InputError class="mt-2" :message="form.errors.name" />
-            </div>
-
-            <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
+            <FormField label="Email" :error="form.errors.email" required>
+                <Input
                     id="email"
-                    type="email"
-                    class="mt-1 block w-full"
                     v-model="form.email"
-                    required
+                    type="email"
                     autocomplete="username"
+                    :invalid="!!form.errors.email"
                 />
-
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
+            </FormField>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
-                <p class="mt-2 text-sm text-gray-800">
-                    Your email address is unverified.
+                <p class="text-sm text-text-muted">
+                    Email Anda belum diverifikasi.
                     <Link
                         :href="route('verification.send')"
                         method="post"
                         as="button"
-                        class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        class="text-text underline hover:text-primary-dark"
                     >
-                        Click here to re-send the verification email.
+                        Kirim ulang email verifikasi.
                     </Link>
                 </p>
 
-                <div
+                <p
                     v-show="status === 'verification-link-sent'"
-                    class="mt-2 text-sm font-medium text-green-600"
+                    class="mt-2 text-sm font-medium text-success"
                 >
-                    A new verification link has been sent to your email address.
-                </div>
+                    Link verifikasi baru sudah dikirim ke email Anda.
+                </p>
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <Button type="submit" :loading="form.processing">Simpan</Button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
@@ -97,9 +83,9 @@ const form = useForm({
                 >
                     <p
                         v-if="form.recentlySuccessful"
-                        class="text-sm text-gray-600"
+                        class="text-sm text-text-muted"
                     >
-                        Saved.
+                        Tersimpan.
                     </p>
                 </Transition>
             </div>

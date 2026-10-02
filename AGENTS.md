@@ -11,6 +11,9 @@ Instruksi untuk AI coding agent yang bekerja di repo ini. Baca file ini dulu seb
 - Frontend approach: Inertia.js + Vue 3 (TypeScript)
 - Styling: Tailwind CSS
 - Testing: Pest
+- Font: Inter, dimuat via Google Fonts `<link>` di root layout (bukan self-host `@fontsource`)
+- Icon: `@lucide/vue`
+- Chart (Dashboard & Laporan, Fase 1.11): Chart.js via `vue-chartjs`
 
 ## Prinsip Arsitektur
 - Monolith. Backend (Laravel) dan frontend (Vue via Inertia) hidup dalam satu repo, satu deploy. Jangan buat REST API terpisah untuk kebutuhan internal app — Inertia sudah menghubungkan controller ke halaman Vue langsung lewat props, tidak perlu fetch/axios ke endpoint sendiri.
@@ -37,8 +40,10 @@ Instruksi untuk AI coding agent yang bekerja di repo ini. Baca file ini dulu seb
   - `app/Services/` — logic bisnis yang dipakai lintas Action.
   - `app/Http/Resources/` — transformasi data ke frontend, dipakai juga agar shape props Inertia konsisten.
   - `resources/js/Pages/Admin/` dan `resources/js/Pages/Kasir/` — halaman Inertia dipisah per role, mapping 1:1 ke `Inertia::render()` di controller masing-masing.
-  - `resources/js/Components/` — komponen Vue yang dipakai berulang.
-  - `resources/js/types/` — definisi TypeScript untuk model/data dari backend.
+  - `resources/js/Components/` — komponen Vue yang dipakai berulang. Daftar lengkap & aturan pemakaian di `docs/UI.md`.
+  - `resources/js/Layouts/` — `AdminLayout`, `KasirLayout`, `AuthLayout` (lihat `docs/UI.md`).
+  - `resources/js/types/` — definisi TypeScript. `index.d.ts` untuk tipe Inertia (`PageProps`, `User`), `models.ts` untuk tipe model domain (`Product`, dll — mencerminkan `Http/Resources`), `pagination.ts` untuk shape paginator.
+  - `resources/js/composables/` — logic reusable lintas komponen (`use*.ts`), dipakai hanya kalau benar-benar dibutuhkan di banyak tempat (lihat Aturan Penulisan Kode → Umum).
 - Hal yang HARUS dihindari:
   - Jangan taruh query Eloquent langsung di file `.vue` lewat API call buatan sendiri — semua data masuk lewat Inertia props.
   - Jangan pakai `any` di TypeScript untuk data yang berasal dari backend; definisikan interface-nya di `resources/js/types/`.
@@ -163,7 +168,7 @@ Instruksi untuk AI coding agent yang bekerja di repo ini. Baca file ini dulu seb
   3. Cek `docs/PRD.md`, `docs/DATABASE.md`, `docs/UI.md`, dan `docs/features/` relevan untuk konteks sebelum menulis kode.
   4. Kerjakan berurutan dari data ke tampilan: migration → model → Action/Service → Form Request → controller → halaman Vue.
   5. Jalankan `php artisan test` (atau test spesifik yang relevan) sebelum menyatakan tugas selesai.
-  6. Jalankan `vendor/bin/pint` sebelum commit.
+  6. Jalankan `vendor/bin/pint` (PHP) dan `npm run lint` + `npm run format` (Vue/TS, kalau ada file diubah) sebelum commit.
 - Kapan harus update `docs/ROADMAP.md`:
   - Centang item setelah kode untuk item tersebut selesai DAN test terkait lulus.
   - Kalau menemukan scope baru yang belum tercatat, tambahkan ke bagian Backlog — jangan dikerjakan diam-diam di luar scope yang diminta.

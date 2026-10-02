@@ -10,6 +10,38 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 
 ---
 
+### [2026-10-02] ESLint + Prettier di-setup mengikuti stub Breeze Vue+TS
+- **Keputusan:** ESLint & Prettier di-setup manual (bukan re-run `breeze:install`) mengikuti versi package & config persis yang dipakai Breeze untuk stack Inertia+Vue+TypeScript (`eslint@^8.57.0`, `eslint-plugin-vue@^9.23.0`, `@vue/eslint-config-typescript@^13.0.0`, dll — lihat `vendor/laravel/breeze/src/Console/InstallsInertiaStacks.php`). Config disalin dari `vendor/laravel/breeze/stubs/inertia-vue-ts/.eslintrc.cjs` dan `stubs/inertia-common/.prettierrc`.
+- **Alasan:** `AGENTS.md` sudah menjanjikan `npm run lint`/`npm run format` sejak awal, tapi baru ketahuan belum pernah benar-benar di-setup saat Fase 1.2 berjalan (Breeze diinstal tanpa flag `--eslint` di Fase 0). Mengikuti versi/config resmi Breeze lebih aman daripada menebak kombinasi versi sendiri, dan tetap konsisten dengan ekosistem Inertia+Vue+TS yang dipakai.
+- **Alternatif yang ditolak:** Re-run `php artisan breeze:install vue --typescript --eslint` — ditolak karena berisiko menimpa file yang sudah banyak dikustomisasi di Fase 1.2 (komponen, layout, halaman Auth/Profile yang sudah ditulis ulang).
+- **Dampak:** `.eslintrc.cjs`, `.prettierrc` baru di root. `package.json` dapat script `lint` & `format`. Satu bug nyata ketemu & diperbaiki saat setup ini: `v-html` dipakai langsung di komponen `<Link>` Inertia (`Pagination.vue`) — dipindah ke `<span>` di dalamnya sesuai aturan `vue/no-v-text-v-html-on-component`.
+
+---
+
+### [2026-10-02] Komponen chart (StatCard, LineChart, dll) ditunda ke Fase 1.11
+- **Keputusan:** Komponen khusus Dashboard & Laporan (`StatCard`, `DeltaBadge`, `LineChart`, `BarChart`, `SubMetricBar`, `DataTable` ringkas) yang terdaftar di `docs/UI.md` TIDAK dibuat di Fase 1.2 (Design System), meski urutan aslinya di dokumen itu ada di sana. Dibuat nanti saat Fase 1.11 (Laporan Dasar) benar-benar dikerjakan.
+- **Alasan:** Fase 1.2 fokus ke komponen yang dipakai lebih dulu di Fase 1.3–1.10 (Button, Input, Table, CartItem, dll). Dashboard/Laporan baru di Fase 1.11 — kalau chart dibuat sekarang, komponennya akan "nganggur" lama sebelum ada halaman yang memakainya, dan desainnya bisa jadi perlu revisi setelah melihat data/kasus nyata dari fase-fase yang berjalan duluan.
+- **Alternatif yang ditolak:** Buat semua komponen sekaligus di Fase 1.2 sesuai urutan asli `docs/UI.md` — ditolak karena menunda fase inti POS (checkout dll) demi komponen yang belum dibutuhkan.
+- **Dampak:** `docs/ROADMAP.md` Fase 1.11 perlu ditambah checklist pembuatan komponen chart ini saat waktunya tiba — belum ditambahkan sekarang, tambahkan saat mulai Fase 1.11.
+
+---
+
+### [2026-10-02] Chart library: Chart.js via vue-chartjs
+- **Keputusan:** Dashboard & Laporan (Fase 1.11) memakai Chart.js lewat wrapper `vue-chartjs`.
+- **Alasan:** Ringan, battle-tested, styling (warna/gradasi/tooltip) mudah dikontrol sesuai Design Tokens di `docs/UI.md`. Cukup untuk kebutuhan line/bar chart sederhana POS ini, tidak perlu library yang lebih berat.
+- **Alternatif yang ditolak:** ApexCharts via `vue3-apexcharts` — visual lebih "polished" out-of-the-box dan lebih dekat gaya referensi Shopeers, tapi bundle size lebih besar; tidak sepadan untuk kebutuhan chart yang relatif sederhana di sini.
+- **Dampak:** `npm install chart.js vue-chartjs` dijalankan saat mulai Fase 1.11, bukan sekarang (lihat keputusan di atas).
+
+---
+
+### [2026-10-02] Font Inter via Google Fonts, icon via @lucide/vue
+- **Keputusan:** Font `Inter` (sesuai `docs/UI.md` Design Tokens) dimuat lewat `<link>` Google Fonts di root layout Blade (`resources/views/app.blade.php`), bukan self-host via `@fontsource/inter`. Icon set memakai `@lucide/vue`.
+- **Alasan:** Google Fonts `<link>` paling simpel, tidak nambah dependency npm/bundle size, auto-update ke versi font terbaru. Lucide dipilih karena gaya ikon stroke-based minimalis cocok dengan referensi visual Shopeers yang sudah diadopsi di `docs/UI.md`, tree-shakeable dan populer di ekosistem Vue/Tailwind.
+- **Alternatif yang ditolak:** `@fontsource/inter` (self-host, lebih baik untuk privacy/offline tapi nambah bundle size & dependency — tidak krusial untuk aplikasi internal POS); Heroicons (konsisten dengan ekosistem Tailwind, tapi gaya outline/solid-nya tidak seselaras Lucide dengan referensi Shopeers).
+- **Dampak:** `npm install @lucide/vue` di awal Fase 1.2. `<link>` Google Fonts ditambahkan ke `resources/views/app.blade.php`.
+
+---
+
 ### [2026-10-02] Halaman register publik & Welcome landing page dihapus
 - **Keputusan:** Route `/register` (`RegisteredUserController`, `Register.vue`), halaman landing `/` (`Welcome.vue`), dan test `RegistrationTest` dihapus. `/` sekarang redirect langsung ke `/login`.
 - **Alasan:** `docs/features/auth-login.md` sudah menetapkan "tidak ada self-registration publik, hanya Admin yang bisa membuat user baru" — tapi route register bawaan Breeze masih aktif dan baru ketahuan saat test gagal karena kolom `role` (wajib, `NOT NULL`) tidak diisi oleh `RegisteredUserController`. Sekalian dibersihkan karena memang bertentangan dengan arsitektur yang sudah diputuskan. `Welcome.vue` juga dihapus karena bukan bagian dari `docs/UI.md` manapun (aplikasi internal POS, bukan produk dengan landing page publik).

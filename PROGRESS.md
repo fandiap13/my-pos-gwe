@@ -6,12 +6,10 @@
 
 ## Status Saat Ini
 
-**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.1 (Fondasi Data)**.
-**Belum dikerjakan:** 1.2 (Design System & Komponen Dasar) dan seterusnya — lihat `docs/ROADMAP.md`.
+**Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.2 (Design System & Komponen Dasar)**.
+**Belum dikerjakan:** 1.3 (Autentikasi & Role) dan seterusnya — lihat `docs/ROADMAP.md`.
 
-> Catatan: penomoran Fase 1.2+ pernah digeser (2026-10-02) — "Design System & Komponen Dasar" disisipkan sebagai 1.2 tersendiri (bukan sekadar 1 checklist item di dalam Auth), karena cakupannya besar: design tokens, komponen Vue dasar, layout Admin/Kasir. Autentikasi & Role yang sebelumnya 1.2 sekarang jadi **1.3**, dan seterusnya semua +1.
-
-**Commit terakhir:** `58189a2` — "feat: Fase 1.1 — fondasi data POS (migration, model, seeder)"
+**Commit terakhir:** lihat `git log --oneline -1` — commit terakhir berjudul "feat: Fase 1.2 — design system, komponen dasar, ESLint/Prettier".
 
 ## Yang Sudah Jadi (Verified, Bukan Asumsi)
 
@@ -23,18 +21,24 @@
 - Swagger (`l5-swagger`) terpasang, `/api/documentation` jalan, 1 endpoint contoh `/api/health`
 - Seeder: 2 user (`admin@example.com`, `kasir@example.com`, password `password` dari factory default), 7 kategori, 14 produk termasuk skenario stok habis/menipis
 - 21 test lulus (`php artisan test`), Pint clean
+- Design system lengkap sesuai `docs/UI.md`: design tokens di `tailwind.config.js` (warna, radius, font Inter via Google Fonts), 26 komponen dasar + 7 komponen POS di `resources/js/Components/`, 3 Layout (`AdminLayout`, `KasirLayout`, `AuthLayout`), composable `useToast`
+- ESLint + Prettier ter-setup (`npm run lint`, `npm run format`) mengikuti stub resmi Breeze Vue+TS — lihat `docs/DECISIONS.md`
+- Component showcase di `/dev/components` (route local-only) untuk verifikasi visual semua komponen
+- Halaman Login & seluruh halaman Auth/Profile sudah pakai komponen & `AuthLayout` baru; komponen Breeze lama (PrimaryButton, TextInput, GuestLayout, AuthenticatedLayout, dll) sudah dihapus total
+- `@tailwindcss/vite` (v4, tidak terpakai) dihapus — project tetap di Tailwind v3
 
 ## Yang BELUM Ada (Jangan Diasumsikan Sudah Jadi)
 
-- **Tidak ada halaman kasir/admin apa pun.** `resources/js/Pages/Admin/` dan `Pages/Kasir/` (sesuai `AGENTS.md`) belum dibuat sama sekali — masih folder Breeze default (`Pages/Auth/`, `Pages/Profile/`, `Pages/Dashboard.vue`).
+- **Belum ada halaman fitur POS apa pun** (CRUD produk, checkout, shift, dll) — `resources/js/Pages/Admin/` dan `Pages/Kasir/` (folder sesuai `AGENTS.md`) masih KOSONG, belum dibuat. Yang sudah ada baru komponen & layout generik, belum halaman yang memakainya untuk fitur nyata.
 - **Tidak ada middleware role** (`role:admin`, `role:kasir`) — kolom `role` di `users` sudah ada, tapi belum ada yang memvalidasinya di route.
-- **Tidak ada `routes/admin.php` / `routes/kasir.php`** — route yang ada sekarang masih `routes/web.php` bawaan Breeze (login, profile) + `routes/api.php` (health check).
-- **Login belum redirect sesuai role** — saat ini login sukses selalu ke `/dashboard` generik (Breeze default), bukan ke `/admin` atau `/kasir` sesuai `docs/features/auth-login.md`.
+- **Tidak ada `routes/admin.php` / `routes/kasir.php`** — route yang ada sekarang masih `routes/web.php` (login, profile, dashboard placeholder) + `routes/api.php` (health check).
+- **Login belum redirect sesuai role** — saat ini login sukses selalu ke `/dashboard` generik (placeholder, lihat `Dashboard.vue`), bukan ke `/admin` atau `/kasir` sesuai `docs/features/auth-login.md`. Dashboard akan diganti total di Fase 1.11 (StatCard, grafik, dll — bukan placeholder ini).
+- Komponen chart (`StatCard`, `LineChart`, `BarChart`, dll) di `docs/UI.md` **sengaja belum dibuat** — ditunda ke Fase 1.11, lihat `docs/DECISIONS.md`. Chart.js/`vue-chartjs` juga belum ter-install.
 - Tidak ada `CreateTransactionAction`, tidak ada checkout, tidak ada shift, tidak ada CRUD produk/kategori dari sisi UI.
 
 ## Keputusan Penting yang HARUS Dibaca Sebelum Lanjut
 
-Baca `docs/DECISIONS.md` secara lengkap — berisi 6 keputusan arsitektur yang sudah final dan TIDAK BOLEH diubah tanpa diskusi ulang dengan user:
+Baca `docs/DECISIONS.md` secara lengkap — berisi keputusan arsitektur yang sudah final dan TIDAK BOLEH diubah tanpa diskusi ulang dengan user:
 
 1. Primary key semua tabel = UUID (bukan auto-increment)
 2. Timestamp disimpan UTC, timezone tampilan dari `store_settings` (data, bukan `.env`)
@@ -44,6 +48,9 @@ Baca `docs/DECISIONS.md` secara lengkap — berisi 6 keputusan arsitektur yang s
 6. Cache `products.stock` dihitung via Model Observer (`StockMovementObserver`)
 7. Cetak struk pakai `window.print()`, bukan ESC/POS (untuk sekarang)
 8. Fitur "Delete Account" & halaman register publik bawaan Breeze **sengaja dihapus** — jangan dikembalikan
+9. Design tokens (warna, font Inter, dll) di `tailwind.config.js` & `docs/UI.md` — jangan ubah salah satu tanpa mengubah yang lain (harus tetap sinkron)
+10. Komponen chart ditunda ke Fase 1.11, chart library = Chart.js/`vue-chartjs` (bukan ApexCharts)
+11. Icon = `@lucide/vue` (bukan `lucide-vue-next`, versi lama sudah deprecated — jangan install ulang package lama ini)
 
 ## Cara Melanjutkan (Prompt Starter untuk AI Baru)
 
@@ -58,7 +65,7 @@ Baca file-file ini secara berurutan sebelum mulai kerja apa pun:
 5. docs/DATABASE.md, docs/PRD.md, docs/UI.md — konteks produk sesuai kebutuhan
 6. docs/features/*.md — spec detail kalau mengerjakan fitur yang sudah ada filenya
 
-Lanjutkan dari Fase 1.2 (Design System & Komponen Dasar) di docs/ROADMAP.md.
+Lanjutkan dari Fase 1.3 (Autentikasi & Role) di docs/ROADMAP.md.
 Jalankan `php artisan test` setelah tiap perubahan, jangan nyatakan selesai
 tanpa verifikasi nyata (migration benar-benar jalan, test benar-benar lulus).
 ```

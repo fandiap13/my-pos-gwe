@@ -31,12 +31,15 @@ Checklist pengerjaan. Centang `[x]` setelah fitur selesai dan teruji.
 
 ### 1.2 Design System & Komponen Dasar
 > Dikerjakan sebelum halaman apa pun dibuat — semua fase berikutnya bergantung pada ini. Daftar lengkap komponen & aturan state ada di `docs/UI.md` bagian "Komponen UI" & "Design Tokens" — jangan duplikasi daftarnya di sini, cukup checklist progres per kelompok.
-- [ ] Design tokens ditentukan & diterapkan ke konfigurasi Tailwind
-- [ ] Komponen dasar (Button, Input, Badge, Modal, Table, dll — lihat `docs/UI.md`) selesai dibuat
-- [ ] Komponen khusus POS (ProductSearch, CartItem, PaymentSummary, ReceiptPreview, dll) selesai dibuat
-- [ ] Layout (`AdminLayout`, `KasirLayout`, `AuthLayout`) selesai dibuat
-- [ ] Component showcase dibuat untuk verifikasi visual seluruh komponen & state
-- [ ] Diterapkan ke 1 halaman contoh (Login) dan diverifikasi sebelum dipakai di halaman lain
+- [x] Design tokens ditentukan & diterapkan ke konfigurasi Tailwind
+- [x] Komponen dasar (Button, Input, Badge, Modal, Table, dll — lihat `docs/UI.md`) selesai dibuat
+- [x] Komponen khusus POS (ProductSearch, CartItem, PaymentSummary, ReceiptPreview, dll) selesai dibuat
+- [x] Layout (`AdminLayout`, `KasirLayout`, `AuthLayout`) selesai dibuat
+- [x] Component showcase dibuat untuk verifikasi visual seluruh komponen & state (`/dev/components`, local only)
+- [x] Diterapkan ke halaman Login dan halaman Auth/Profile lain; komponen Breeze lama (PrimaryButton, TextInput, dll) dihapus
+- [x] ESLint + Prettier di-setup (belum ada sejak Fase 0, lihat `docs/DECISIONS.md`)
+
+Komponen chart (StatCard, LineChart, dll) sengaja ditunda ke Fase 1.11 — lihat `docs/DECISIONS.md`.
 
 ### 1.3 Autentikasi & Role
 - [ ] Implementasi sesuai `docs/features/auth-login.md`

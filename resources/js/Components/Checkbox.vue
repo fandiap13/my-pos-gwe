@@ -1,29 +1,31 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+withDefaults(
+    defineProps<{
+        modelValue?: boolean;
+        disabled?: boolean;
+    }>(),
+    {
+        modelValue: false,
+        disabled: false,
+    },
+);
 
-const emit = defineEmits(['update:checked']);
-
-const props = defineProps<{
-    checked: boolean;
-    value?: any;
+defineEmits<{
+    'update:modelValue': [value: boolean];
 }>();
-
-const proxyChecked = computed({
-    get() {
-        return props.checked;
-    },
-
-    set(val) {
-        emit('update:checked', val);
-    },
-});
 </script>
 
 <template>
     <input
         type="checkbox"
-        :value="value"
-        v-model="proxyChecked"
-        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+        :checked="modelValue"
+        :disabled="disabled"
+        class="rounded border-border text-primary-dark focus:ring-2 focus:ring-primary-dark disabled:cursor-not-allowed disabled:opacity-50"
+        @change="
+            $emit(
+                'update:modelValue',
+                ($event.target as HTMLInputElement).checked,
+            )
+        "
     />
 </template>

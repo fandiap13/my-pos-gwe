@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import Button from '@/Components/Button.vue';
+import FormField from '@/Components/FormField.vue';
+import Input from '@/Components/Input.vue';
+import AuthLayout from '@/Layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 
 defineProps<{
@@ -20,47 +19,35 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Forgot Password" />
+    <AuthLayout>
+        <Head title="Lupa Password" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            Forgot your password? No problem. Just let us know your email
-            address and we will email you a password reset link that will allow
-            you to choose a new one.
-        </div>
+        <p class="mb-4 text-sm text-text-muted">
+            Lupa password? Masukkan email Anda, kami akan mengirimkan link untuk
+            membuat password baru.
+        </p>
 
-        <div
-            v-if="status"
-            class="mb-4 text-sm font-medium text-green-600"
-        >
+        <p v-if="status" class="mb-4 text-sm font-medium text-success">
             {{ status }}
-        </div>
+        </p>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
+        <form class="space-y-4" @submit.prevent="submit">
+            <FormField label="Email" :error="form.errors.email" required>
+                <Input
                     id="email"
-                    type="email"
-                    class="mt-1 block w-full"
                     v-model="form.email"
-                    required
+                    type="email"
                     autofocus
                     autocomplete="username"
+                    :invalid="!!form.errors.email"
                 />
+            </FormField>
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+            <div class="flex justify-end pt-2">
+                <Button type="submit" :loading="form.processing"
+                    >Kirim Link Reset</Button
                 >
-                    Email Password Reset Link
-                </PrimaryButton>
             </div>
         </form>
-    </GuestLayout>
+    </AuthLayout>
 </template>

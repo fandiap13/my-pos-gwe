@@ -1,10 +1,9 @@
 <script setup lang="ts">
+import Button from '@/Components/Button.vue';
 import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import FormField from '@/Components/FormField.vue';
+import Input from '@/Components/Input.vue';
+import AuthLayout from '@/Layouts/AuthLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 defineProps<{
@@ -28,71 +27,56 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Log in" />
+    <AuthLayout>
+        <Head title="Masuk" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+        <p v-if="status" class="mb-4 text-sm font-medium text-success">
             {{ status }}
-        </div>
+        </p>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
+        <form class="space-y-4" @submit.prevent="submit">
+            <FormField label="Email" :error="form.errors.email" required>
+                <Input
                     id="email"
-                    type="email"
-                    class="mt-1 block w-full"
                     v-model="form.email"
-                    required
+                    type="email"
                     autofocus
                     autocomplete="username"
+                    :invalid="!!form.errors.email"
                 />
+            </FormField>
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput
+            <FormField label="Password" :error="form.errors.password" required>
+                <Input
                     id="password"
-                    type="password"
-                    class="mt-1 block w-full"
                     v-model="form.password"
-                    required
+                    type="password"
                     autocomplete="current-password"
+                    :invalid="!!form.errors.password"
                 />
+            </FormField>
 
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
+            <label class="flex items-center gap-2">
+                <Checkbox v-model="form.remember" />
+                <span class="text-sm text-text-muted">Ingat saya</span>
+            </label>
 
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600"
-                        >Remember me</span
-                    >
-                </label>
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
+            <div class="flex items-center justify-between pt-2">
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    class="text-sm text-text-muted underline hover:text-text"
                 >
-                    Forgot your password?
+                    Lupa password?
                 </Link>
-
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+                <Button
+                    type="submit"
+                    :loading="form.processing"
+                    class="ml-auto"
                 >
-                    Log in
-                </PrimaryButton>
+                    Masuk
+                </Button>
             </div>
         </form>
-    </GuestLayout>
+    </AuthLayout>
 </template>

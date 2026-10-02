@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
+import Button from '@/Components/Button.vue';
+import AuthLayout from '@/Layouts/AuthLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps<{
     status?: string;
@@ -20,40 +20,37 @@ const verificationLinkSent = computed(
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Email Verification" />
+    <AuthLayout>
+        <Head title="Verifikasi Email" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            Thanks for signing up! Before getting started, could you verify your
-            email address by clicking on the link we just emailed to you? If you
-            didn't receive the email, we will gladly send you another.
-        </div>
+        <p class="mb-4 text-sm text-text-muted">
+            Mohon verifikasi email Anda dengan mengklik link yang baru saja kami
+            kirimkan. Kalau belum menerima email-nya, kami bisa kirim ulang.
+        </p>
 
-        <div
-            class="mb-4 text-sm font-medium text-green-600"
+        <p
             v-if="verificationLinkSent"
+            class="mb-4 text-sm font-medium text-success"
         >
-            A new verification link has been sent to the email address you
-            provided during registration.
-        </div>
+            Link verifikasi baru sudah dikirim ke email Anda.
+        </p>
 
-        <form @submit.prevent="submit">
-            <div class="mt-4 flex items-center justify-between">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Resend Verification Email
-                </PrimaryButton>
+        <form
+            class="flex items-center justify-between"
+            @submit.prevent="submit"
+        >
+            <Button type="submit" :loading="form.processing"
+                >Kirim Ulang Email Verifikasi</Button
+            >
 
-                <Link
-                    :href="route('logout')"
-                    method="post"
-                    as="button"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >Log Out</Link
-                >
-            </div>
+            <Link
+                :href="route('logout')"
+                method="post"
+                as="button"
+                class="text-sm text-text-muted underline hover:text-text"
+            >
+                Keluar
+            </Link>
         </form>
-    </GuestLayout>
+    </AuthLayout>
 </template>

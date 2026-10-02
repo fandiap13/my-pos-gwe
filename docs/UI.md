@@ -6,6 +6,7 @@
 - **Konfirmasi untuk aksi berisiko.** Void transaksi, hapus produk, tutup shift dengan selisih kas — selalu ada dialog konfirmasi, tidak langsung eksekusi.
 - **Responsive, prioritas desktop/tablet.** Kasir kemungkinan pakai PC/tablet di meja kasir (bukan HP), tapi halaman admin/laporan tetap harus bisa dibuka dari HP untuk pemilik toko yang mobile.
 - **State stok & shift selalu terlihat.** Kasir harus selalu tahu: shift sedang aktif atau tidak, dan kalau stok produk yang dicari menipis/habis.
+- **Segar & bersih.** Brand hijau dipilih karena toko mengutamakan kesegaran produk. Tampilan terang, lega, dan tidak ramai — warna hijau dipakai untuk aksi utama dan penanda aktif, bukan untuk dekorasi.
 
 ## Daftar Halaman
 
@@ -20,7 +21,7 @@
 ### Mode Admin (`resources/js/Pages/Admin/`)
 | Halaman | Role Akses | Deskripsi Singkat |
 |---|---|---|
-| Dashboard | Admin | Ringkasan: penjualan hari ini, shift aktif, stok menipis (lihat 5.2 PRD — nice to have, bisa versi sederhana dulu) |
+| Dashboard | Admin | Ringkasan: penjualan hari ini, shift aktif, stok menipis (lihat 5.2 PRD — nice to have, bisa versi sederhana dulu). Pola layout mengacu ke "Referensi Visual" di bawah |
 | Produk — Daftar | Admin | Tabel produk, filter kategori, search, indikator stok menipis |
 | Produk — Tambah/Edit | Admin | Form produk: nama, SKU/barcode, kategori, harga jual, harga modal, stok awal, stok minimum |
 | Kategori — Daftar | Admin | Tree/list kategori & subkategori (self-referencing, lihat `docs/DATABASE.md`) |
@@ -81,25 +82,108 @@ Dibangun di Fase 1.2 (`docs/ROADMAP.md`), sebelum halaman fitur dibuat. Semua di
 ### Khusus POS (konteks checkout/kasir)
 `ProductSearch` (cari produk nama/SKU/barcode), `ProductCard`, `CartItem`, `QuantityInput` (+/−), `PaymentMethodSelector` (cash/transfer/debit), `PaymentSummary` (subtotal/total/kembalian), `ReceiptPreview` (struk 58mm/80mm, dipakai di Transaksi & cetak ulang Riwayat).
 
+### Khusus Dashboard & Laporan (mengacu ke Referensi Visual)
+`StatCard` (label + ikon kecil, angka besar, `DeltaBadge`, teks muted "vs. periode lalu"), `DeltaBadge` (naik = hijau, turun = merah), `LineChart` (garis + area gradasi tint, garis putus-putus periode pembanding, tooltip hover), `BarChart` (satu bar disorot warna primer, mis. penjualan per hari/jam), `SubMetricBar` (angka + garis warna di bawahnya, untuk rincian di dalam kartu), `DataTable` ringkas (kolom angka rata kanan, thumbnail produk, ikon naik/turun) untuk "Produk Terlaris".
+
 ### Layout
 `AdminLayout` (sidebar + header, `Pages/Admin/`), `KasirLayout` (minim distraksi, `Pages/Kasir/`), `AuthLayout` (halaman login).
+
+- **AdminLayout:** sidebar kiri lebar tetap (±200px) dengan logo + tombol collapse, menu beribu ikon, item aktif berlatar tint primer + garis penanda di kiri, badge hitungan kecil di menu (mis. jumlah stok menipis), grup menu yang bisa dilipat (mis. Laporan → Penjualan, Per Shift), serta Pengaturan & Bantuan di dasar sidebar. Header atas: search dengan shortcut `⌘K`, notifikasi, avatar. Di mobile sidebar menjadi drawer.
+- **KasirLayout:** sengaja lebih ringan dari AdminLayout — tanpa sidebar penuh, hanya header tipis (nama toko, indikator shift aktif, nama kasir, akses ke Riwayat/Tutup Shift) agar area kerja checkout maksimal.
 
 **Aturan:** setiap komponen punya state default/hover/focus/active/disabled/loading/error (+ empty state kalau relevan). Cek role & shift aktif kasir ditangani middleware Laravel (`role:admin`, `EnsureShiftActive` — lihat `AGENTS.md`), bukan komponen Vue terpisah.
 
 ## Hal yang Masih Perlu Diputuskan
 - Modal inline vs halaman terpisah untuk tambah kategori cepat dari form produk.
+- Logo toko (untuk header & struk).
+- Dark mode — belum dijadwalkan; token dibuat sebagai CSS variable/Tailwind theme supaya bisa ditambah nanti tanpa restyle.
 
 ## Design Tokens
-> **Diisi sebelum mengerjakan `docs/ROADMAP.md` Fase 1.2** (sebelum halaman Login dibuat), supaya semua halaman berikutnya konsisten sejak awal — bukan restyle ulang di akhir. Diterapkan ke `tailwind.config.js`.
+> Diterapkan ke konfigurasi Tailwind sebelum mengerjakan `docs/ROADMAP.md` Fase 1.2 (sebelum halaman Login dibuat). Kalau project memakai Tailwind v4, definisikan sebagai `@theme` di CSS utama; kalau v3, di `tailwind.config.js`.
 
-- **Warna primer** (tombol utama, link aktif, highlight): `#` — *perlu diisi*
-- **Warna sekunder** (tombol kedua, aksen): `#` — *perlu diisi*
-- **Warna status badge:**
-  - Sukses / stok aman: `#` — *perlu diisi*
-  - Warning / stok menipis: `#` — *perlu diisi*
-  - Bahaya / stok habis, voided: `#` — *perlu diisi*
-- **Font** (kalau bukan default Tailwind/system font): `` — *perlu diisi*
-- **Logo toko** (kalau ada, untuk header/struk): — *perlu diisi*
+### Warna
+
+**Brand**
+| Token | Hex | Pemakaian |
+|---|---|---|
+| `primary` | `#16A34A` | Highlight, link aktif, ikon aksen, bar/grafik utama |
+| `primary-dark` | `#15803D` | Tombol utama solid (teks putih), hover/pressed |
+| `primary-light` | `#DCFCE7` | Latar item sidebar aktif, tint badge sukses, area gradasi grafik |
+
+**Neutral**
+| Token | Hex | Pemakaian |
+|---|---|---|
+| `background` | `#F8FAF9` | Latar halaman |
+| `surface` | `#FFFFFF` | Kartu, tabel, modal, sidebar, header |
+| `border` | `#E2E8E4` | Border kartu, tabel, input, divider |
+
+**Teks**
+| Token | Hex | Pemakaian |
+|---|---|---|
+| `text` | `#17221B` | Teks utama, angka besar |
+| `text-muted` | `#66736B` | Label, deskripsi, "vs. periode lalu" |
+| `text-faint` | `#94A39A` | Placeholder, header kolom tabel, teks nonaktif |
+
+**Status**
+| Token | Hex | Pemakaian |
+|---|---|---|
+| `success` | `#16A34A` | Sukses / stok aman, delta naik |
+| `warning` | `#F59E0B` | Stok menipis |
+| `danger` | `#DC2626` | Stok habis, voided, delta turun, aksi destruktif |
+| `info` | `#2563EB` | Informasi netral, metrik pembanding di grafik |
+
+> Warna **sekunder** tidak dibuat sebagai hue terpisah. Tombol kedua = outline (border `border`, teks `text`, hover latar `primary-light`). Aksen tambahan di grafik memakai `info` dan `warning`.
+
+### Aturan pemakaian warna
+- **Kontras:** teks putih hanya di atas `primary-dark` (±5:1). Putih di atas `primary` (`#16A34A`) hanya ±3,3:1 — cukup untuk ikon dan teks bold besar, tidak untuk teks kecil.
+- **Badge status** selalu berupa tint (latar muda + teks gelap warna status), bukan solid. Ini juga membedakan badge "stok aman" dari tombol primer yang sama-sama hijau, dan membuat `warning` tetap terbaca (teks amber gelap di atas latar kuning pucat, bukan putih di atas `#F59E0B`).
+- **Tombol aksi utama** (mis. "Bayar", "Simpan") selalu solid `primary-dark`; tombol sekunder selalu outline.
+- **Delta angka:** naik = `success`, turun = `danger`, selalu disertai ikon panah (tidak mengandalkan warna saja).
+- **Sub-metrik / seri grafik:** urutan warna `primary` → `info` → `warning`.
+
+### Tipografi
+- **Font:** `Inter` (fallback: `ui-sans-serif, system-ui, sans-serif`).
+- **Angka:** gunakan tabular numbers (`font-variant-numeric: tabular-nums`) di tabel, total, dan kembalian agar digit sejajar.
+- **Skala:** teks kecil (12–13px) untuk label & metadata di admin; angka KPI besar (±28–32px) dan **total/kembalian di layar kasir lebih besar lagi** (sesuai prinsip "angka besar").
+
+### Bentuk & Elevasi
+- Kartu: radius ±16px, border 1px `border`, bayangan sangat tipis; jarak antar kartu lega.
+- Input & tombol: radius ±8–10px.
+- Overlay modal/drawer: latar gelap semi-transparan.
+
+### Format Angka
+- Mata uang Rupiah tanpa desimal dengan pemisah ribuan titik: `Rp 446.700` (bukan `$446.7K`). Angka besar di dashboard boleh disingkat (`Rp 446,7 jt`) hanya di KPI, tidak di tabel/struk.
+
+### Logo
+- Logo toko (untuk header/struk): — *perlu diisi*
 
 ## Referensi Visual
-- (tempel link mockup/Figma/screenshot referensi di sini)
+
+**Sumber:** mockup dashboard admin e-commerce "Shopeers" (mode terang). Dipakai sebagai acuan **gaya dan struktur layout untuk halaman Admin (Dashboard & Laporan)** — **bukan** untuk layar Kasir, karena tekstur teksnya kecil dan padat, sedangkan layar kasir butuh angka besar dan tanpa scroll. **Warna tidak mengikuti referensi** (referensi biru → diganti palet hijau di atas); semua elemen biru di referensi (tombol utama, item sidebar aktif, bar yang disorot) menjadi `primary`/`primary-dark`.
+
+**Struktur layout referensi**
+- Sidebar kiri + header atas (search `⌘K`, notifikasi, avatar) + area konten dengan judul halaman di kiri dan kontrol di kanan (rentang tanggal, dropdown preset "30 hari terakhir", tombol outline, tombol utama "Export").
+- Grid kartu: baris atas 4 KPI; di bawahnya kolom lebar (grafik + tabel) di kiri dan kolom sempit (widget kecil) di kanan.
+
+**Elemen yang diadopsi**
+| Elemen referensi | Padanan di aplikasi ini |
+|---|---|
+| Sidebar + header | `AdminLayout` |
+| 4 KPI card + delta badge | Dashboard: penjualan hari ini, jumlah transaksi, shift aktif, produk stok menipis |
+| Grafik garis + tooltip + garis pembanding | Laporan Penjualan & Dashboard |
+| 3 sub-metrik bergaris warna di kartu profit | Rincian per metode bayar (cash/transfer/debit) |
+| Bar chart per hari (satu bar disorot) | Penjualan per hari/jam ramai |
+| Tabel "Best Selling Products" | Produk terlaris di Laporan |
+| Date range + dropdown preset + Export | `DateRangePicker` (Export → Fase 2) |
+| Badge hitungan di menu sidebar | Indikator stok menipis |
+
+**Elemen yang tidak diadopsi (di luar scope PRD)**
+- Widget builder "Add Widget" (drawer + drag & drop), AI Assistant, kartu promo "Upgrade to Premium".
+- Metrik web e-commerce: Page Views, Visitors, Click, menu Content/Online Store (toko ini fisik, bukan online).
+- Ditunda: Repeat Customer Rate & Customers (menunggu fitur member di Fase 2), toggle tema gelap.
+
+**Catatan penyesuaian**
+- Semua nilai uang berformat Rupiah (lihat "Format Angka").
+- Referensi hanya tampilan terang; tidak ada contoh layar kasir, jadi layar Transaksi/Checkout didesain terpisah dengan prinsip di bagian atas dokumen.
+
+- (tempel link mockup/Figma/screenshot referensi tambahan di sini)

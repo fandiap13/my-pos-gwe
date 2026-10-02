@@ -17,4 +17,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
+// Dev tool, bukan fitur produk — lihat docs/ROADMAP.md Fase 1.2.
+if (app()->environment('local')) {
+    Route::get('/dev/components', function () {
+        return Inertia::render('ComponentShowcase');
+    })->middleware('auth')->name('dev.components');
+}
+
 require __DIR__.'/auth.php';
