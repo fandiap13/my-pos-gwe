@@ -3,17 +3,17 @@
 Checklist pengerjaan. Centang `[x]` setelah fitur selesai dan teruji.
 
 ## Fase 0 — Setup
-- [ ] Install project Laravel 12 baru (`laravel new pos-app`)
-- [ ] Install starter kit Inertia + Vue (TypeScript) — `php artisan install:api` tidak dipakai; pakai `laravel new --vue --typescript` atau breeze/jetstream varian Inertia-Vue-TS
-- [ ] Setup koneksi database PostgreSQL di `.env` (local) — pastikan `pgsql` extension aktif di PHP
-- [ ] Setup Tailwind CSS (biasanya sudah ikut starter kit, tinggal verifikasi)
-- [ ] Install & setup Pest (`php artisan pest:install` kalau belum ikut starter kit)
-- [ ] Install & setup `darkaonline/l5-swagger`, pastikan `/api/documentation` bisa diakses (boleh kosong dulu, isi API-nya nanti)
-- [ ] Buat struktur folder tambahan: `app/Actions/`, `app/Services/`, `resources/js/types/`
-- [ ] Setup auth bawaan starter kit (login/register/logout) — sesuaikan nanti dengan role di `docs/PRD.md`
-- [ ] Buat `.env.example` yang mencerminkan `.env` lokal (tanpa secret asli)
-- [ ] Pastikan `composer run dev` menjalankan server + Vite tanpa error
-- [ ] Commit awal: project kosong siap jalan ("hello world" / halaman login tampil)
+- [x] Install project Laravel 12 baru (`laravel new pos-app`)
+- [x] Install starter kit Inertia + Vue (TypeScript) — `php artisan install:api` tidak dipakai; pakai `laravel new --vue --typescript` atau breeze/jetstream varian Inertia-Vue-TS
+- [x] Setup koneksi database PostgreSQL di `.env` (local) — pastikan `pgsql` extension aktif di PHP
+- [x] Setup Tailwind CSS (biasanya sudah ikut starter kit, tinggal verifikasi)
+- [x] Install & setup Pest (`php artisan pest:install` kalau belum ikut starter kit)
+- [x] Install & setup `darkaonline/l5-swagger`, pastikan `/api/documentation` bisa diakses (boleh kosong dulu, isi API-nya nanti)
+- [x] Buat struktur folder tambahan: `app/Actions/`, `app/Services/`, `resources/js/types/`
+- [x] Setup auth bawaan starter kit (login/register/logout) — sesuaikan nanti dengan role di `docs/PRD.md`
+- [x] Buat `.env.example` yang mencerminkan `.env` lokal (tanpa secret asli)
+- [x] Pastikan `composer run dev` menjalankan server + Vite tanpa error
+- [x] Commit awal: project kosong siap jalan ("hello world" / halaman login tampil)
 
 ## Fase 1 — Core POS
 
