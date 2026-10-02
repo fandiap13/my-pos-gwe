@@ -2,6 +2,8 @@
 
 Instruksi untuk AI coding agent yang bekerja di repo ini. Baca file ini dulu sebelum mengerjakan apa pun.
 
+**WAJIB:** sebelum memulai tugas apa pun, baca juga `PROGRESS.md` di root project — berisi status terkini (apa yang sudah jadi vs belum), dan `docs/DECISIONS.md` — berisi keputusan arsitektur final yang tidak boleh diubah/diabaikan. Jangan asumsikan status project hanya dari membaca kode; `PROGRESS.md` adalah sumber kebenaran untuk "di mana pengerjaan berhenti".
+
 ## Stack
 - Framework: Laravel 12
 - Bahasa / versi: PHP 8.3.16
@@ -156,14 +158,18 @@ Instruksi untuk AI coding agent yang bekerja di repo ini. Baca file ini dulu seb
 
 ## Workflow Vibecode
 - Urutan kerja AI saat mengerjakan tugas:
-  1. Baca `docs/ROADMAP.md`, pilih/ambil item yang diminta user.
-  2. Cek `docs/PRD.md`, `docs/DATABASE.md`, `docs/UI.md`, dan `docs/features/` relevan untuk konteks sebelum menulis kode.
-  3. Kerjakan berurutan dari data ke tampilan: migration → model → Action/Service → Form Request → controller → halaman Vue.
-  4. Jalankan `php artisan test` (atau test spesifik yang relevan) sebelum menyatakan tugas selesai.
-  5. Jalankan `vendor/bin/pint` sebelum commit.
+  1. Baca `PROGRESS.md` dan `docs/DECISIONS.md` untuk tahu status terkini dan keputusan yang sudah final.
+  2. Baca `docs/ROADMAP.md`, pilih/ambil item yang diminta user.
+  3. Cek `docs/PRD.md`, `docs/DATABASE.md`, `docs/UI.md`, dan `docs/features/` relevan untuk konteks sebelum menulis kode.
+  4. Kerjakan berurutan dari data ke tampilan: migration → model → Action/Service → Form Request → controller → halaman Vue.
+  5. Jalankan `php artisan test` (atau test spesifik yang relevan) sebelum menyatakan tugas selesai.
+  6. Jalankan `vendor/bin/pint` sebelum commit.
 - Kapan harus update `docs/ROADMAP.md`:
   - Centang item setelah kode untuk item tersebut selesai DAN test terkait lulus.
   - Kalau menemukan scope baru yang belum tercatat, tambahkan ke bagian Backlog — jangan dikerjakan diam-diam di luar scope yang diminta.
+- Kapan harus update `PROGRESS.md`:
+  - Setelah satu sub-fase besar di `docs/ROADMAP.md` selesai (misal seluruh 1.1, bukan tiap item kecil), update bagian "Status Saat Ini", "Yang Sudah Jadi", dan "Yang BELUM Ada".
+  - Update commit hash terakhir di `PROGRESS.md` supaya AI/developer berikutnya tahu titik pastinya.
 - Kapan harus berhenti dan bertanya ke user:
   - Keputusan yang mengubah skema database secara besar (menambah tabel baru, mengubah relasi inti).
   - Aturan bisnis yang belum jelas di `docs/PRD.md` (misal: cara hitung diskon, siapa yang boleh void transaksi).
@@ -189,6 +195,7 @@ Instruksi untuk AI coding agent yang bekerja di repo ini. Baca file ini dulu seb
 - Generate dokumentasi Swagger: `php artisan l5-swagger:generate`
 
 ## Referensi
+- Lihat PROGRESS.md untuk status terkini project (WAJIB dibaca di awal sesi)
 - Lihat docs/PRD.md untuk fitur & aturan bisnis
 - Lihat docs/DATABASE.md untuk skema data
 - Lihat docs/UI.md untuk alur layar
