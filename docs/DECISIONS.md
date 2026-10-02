@@ -10,6 +10,12 @@ Catatan keputusan teknis/produk yang sudah final, supaya AI tidak mengubah atau 
 
 ---
 
+### [2026-10-02] Pesan validasi Form Request dalam Bahasa Indonesia (tanpa `lang/`)
+- **Keputusan:** Setiap Form Request menulis pesan validasinya sendiri dalam **Bahasa Indonesia** lewat method `messages()` — satu kunci per rule, mis. `'price.min' => 'Harga jual tidak boleh negatif.'`. Pesan login di `LoginRequest` juga string literal Indonesia (`'Kredensial tidak cocok dengan data kami.'`, pesan rate-limit disusun manual dengan `:seconds` yang sudah diganti). **Tidak** memakai file bahasa `lang/id/` dan **tidak** mengubah `APP_LOCALE` — locale tetap `en` (default Laravel).
+- **Alasan:** Permintaan user — client orang Indonesia, cukup tulis pesannya langsung di request; setup `lang/id/` + mengganti locale dinilai berlebihan. Catatan: pendekatan `lang/id/*` + `APP_LOCALE=id` sempat diimplementasikan lalu dibuang seluruhnya atas instruksi user.
+- **Alternatif yang ditolak:** File bahasa `lang/id/validation.php` + `APP_LOCALE=id` (sudah dibuat lalu dihapus — user tidak mau); menulis `messages()` sebagian sehingga rule yang terlewat jatuh ke pesan default Laravel berbahasa Inggris.
+- **Dampak:** Rule baru di Form Request **wajib** disertai kunci `messages()` yang setara — kalau lupa, pesan tampil bahasa Inggris dari default framework. Validasi inline `$request->validate()` / `Auth::validate()` di controller Breeze (lupa sandi, ganti sandi, confirm password) di luar scope request dan **masih berbahasa Inggris**. Diunci oleh `tests/Feature/ValidationMessageTest.php`.
+
 ### [2026-10-02] Kontrol baris/halaman di Pagination, `per_page` dibatasi 1..100
 - **Keputusan:** Semua halaman daftar yang punya pagination menampilkan kontrol **Baris/halaman** (opsi 10/15/25/50/100, default 15) di dalam komponen `Pagination`, di samping teks "Menampilkan X–Y dari Z data". Nilai query `per_page` dibatasi 1..100 lewat method base `Controller::perPage()` — **bukan** Form Request.
 - **Alasan:** Permintaan user supaya client tidak perlu mengetab banyak saat data banyak, dengan batas atas 100 baris supaya query tetap ringan. `per_page` bukan input form: nilainya dibatasi/dibulatkan (bukan ditolak), sehingga URL yang tidak valid tetap menampilkan data wajar alih-alih error validasi, dan tidak perlu satu Form Request per endpoint index.

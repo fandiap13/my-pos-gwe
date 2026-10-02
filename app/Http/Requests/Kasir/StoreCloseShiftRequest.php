@@ -23,4 +23,16 @@ class StoreCloseShiftRequest extends FormRequest
             'closing_cash' => ['required', 'integer', 'min:0'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'closing_cash.required' => 'Kas akhir wajib diisi.',
+            'closing_cash.integer' => 'Kas akhir harus berupa angka.',
+            'closing_cash.min' => 'Kas akhir tidak boleh negatif.',
+        ];
+    }
 }

@@ -32,4 +32,32 @@ class UpdateProductRequest extends FormRequest
             'min_stock' => ['required', 'integer', 'min:0'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'category_id.uuid' => 'Kategori tidak valid.',
+            'category_id.exists' => 'Kategori tidak ditemukan.',
+            'name.required' => 'Nama produk wajib diisi.',
+            'name.string' => 'Nama produk harus berupa teks.',
+            'name.max' => 'Nama produk maksimal 255 karakter.',
+            'sku.string' => 'SKU harus berupa teks.',
+            'sku.max' => 'SKU maksimal 255 karakter.',
+            'sku.unique' => 'SKU sudah dipakai produk lain.',
+            'barcode.string' => 'Barcode harus berupa teks.',
+            'barcode.max' => 'Barcode maksimal 255 karakter.',
+            'barcode.unique' => 'Barcode sudah dipakai produk lain.',
+            'price.required' => 'Harga jual wajib diisi.',
+            'price.integer' => 'Harga jual harus berupa angka.',
+            'price.min' => 'Harga jual tidak boleh negatif.',
+            'cost_price.integer' => 'Harga beli harus berupa angka.',
+            'cost_price.min' => 'Harga beli tidak boleh negatif.',
+            'min_stock.required' => 'Stok minimum wajib diisi.',
+            'min_stock.integer' => 'Stok minimum harus berupa angka.',
+            'min_stock.min' => 'Stok minimum tidak boleh negatif.',
+        ];
+    }
 }

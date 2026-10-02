@@ -26,6 +26,20 @@ class UpdateCategoryRequest extends FormRequest
     }
 
     /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Nama kategori wajib diisi.',
+            'name.string' => 'Nama kategori harus berupa teks.',
+            'name.max' => 'Nama kategori maksimal 255 karakter.',
+            'parent_id.uuid' => 'Kategori induk tidak valid.',
+            'parent_id.exists' => 'Kategori induk tidak ditemukan.',
+        ];
+    }
+
+    /**
      * Cegah siklus: kategori tidak boleh jadi parent dirinya sendiri
      * (langsung maupun tidak langsung lewat salah satu descendant-nya).
      * Lihat docs/DATABASE.md "Catatan implementasi" untuk categories.

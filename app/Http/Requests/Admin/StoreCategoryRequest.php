@@ -22,4 +22,18 @@ class StoreCategoryRequest extends FormRequest
             'parent_id' => ['nullable', 'uuid', Rule::exists('categories', 'id')->whereNull('deleted_at')],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Nama kategori wajib diisi.',
+            'name.string' => 'Nama kategori harus berupa teks.',
+            'name.max' => 'Nama kategori maksimal 255 karakter.',
+            'parent_id.uuid' => 'Kategori induk tidak valid.',
+            'parent_id.exists' => 'Kategori induk tidak ditemukan.',
+        ];
+    }
 }

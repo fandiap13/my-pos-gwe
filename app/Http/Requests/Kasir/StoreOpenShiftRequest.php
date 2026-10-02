@@ -22,4 +22,16 @@ class StoreOpenShiftRequest extends FormRequest
             'opening_cash' => ['required', 'integer', 'min:0'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'opening_cash.required' => 'Kas awal wajib diisi.',
+            'opening_cash.integer' => 'Kas awal harus berupa angka.',
+            'opening_cash.min' => 'Kas awal tidak boleh negatif.',
+        ];
+    }
 }
