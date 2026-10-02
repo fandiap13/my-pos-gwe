@@ -7,7 +7,9 @@
 ## Status Saat Ini
 
 **Fase aktif:** Fase 1 — Core POS, baru selesai sub-fase **1.1 (Fondasi Data)**.
-**Belum dikerjakan:** 1.2 (Autentikasi & Role) dan seterusnya — lihat `docs/ROADMAP.md`.
+**Belum dikerjakan:** 1.2 (Design System & Komponen Dasar) dan seterusnya — lihat `docs/ROADMAP.md`.
+
+> Catatan: penomoran Fase 1.2+ pernah digeser (2026-10-02) — "Design System & Komponen Dasar" disisipkan sebagai 1.2 tersendiri (bukan sekadar 1 checklist item di dalam Auth), karena cakupannya besar: design tokens, komponen Vue dasar, layout Admin/Kasir. Autentikasi & Role yang sebelumnya 1.2 sekarang jadi **1.3**, dan seterusnya semua +1.
 
 **Commit terakhir:** `58189a2` — "feat: Fase 1.1 — fondasi data POS (migration, model, seeder)"
 
@@ -56,7 +58,7 @@ Baca file-file ini secara berurutan sebelum mulai kerja apa pun:
 5. docs/DATABASE.md, docs/PRD.md, docs/UI.md — konteks produk sesuai kebutuhan
 6. docs/features/*.md — spec detail kalau mengerjakan fitur yang sudah ada filenya
 
-Lanjutkan dari Fase 1.2 (Autentikasi & Role) di docs/ROADMAP.md.
+Lanjutkan dari Fase 1.2 (Design System & Komponen Dasar) di docs/ROADMAP.md.
 Jalankan `php artisan test` setelah tiap perubahan, jangan nyatakan selesai
 tanpa verifikasi nyata (migration benar-benar jalan, test benar-benar lulus).
 ```

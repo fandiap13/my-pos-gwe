@@ -7,8 +7,7 @@ Checklist pengerjaan. Centang `[x]` setelah fitur selesai dan teruji.
 - [x] Install starter kit Inertia + Vue (TypeScript) — `php artisan install:api` tidak dipakai; pakai `laravel new --vue --typescript` atau breeze/jetstream varian Inertia-Vue-TS
 - [x] Setup koneksi database PostgreSQL di `.env` (local) — pastikan `pgsql` extension aktif di PHP
 - [x] Setup Tailwind CSS (biasanya sudah ikut starter kit, tinggal verifikasi)
-- [x] Install & setup Pest (`ph
-p artisan pest:install` kalau belum ikut starter kit)
+- [x] Install & setup Pest (`php artisan pest:install` kalau belum ikut starter kit)
 - [x] Install & setup `darkaonline/l5-swagger`, pastikan `/api/documentation` bisa diakses (boleh kosong dulu, isi API-nya nanti)
 - [x] Buat struktur folder tambahan: `app/Actions/`, `app/Services/`, `resources/js/types/`
 - [x] Setup auth bawaan starter kit (login/register/logout) — sesuaikan nanti dengan role di `docs/PRD.md`
@@ -30,27 +29,90 @@ p artisan pest:install` kalau belum ikut starter kit)
 - [x] Factory + seeder dummy untuk `categories` & `products` (data development)
 - [x] Model Eloquent untuk semua tabel di atas, pakai trait `HasUuids`, relasi sesuai `docs/DATABASE.md`
 
-### 1.2 Autentikasi & Role
-- [ ] **Tentukan & terapkan design tokens** (warna primer/sekunder, warna status badge, font) ke `tailwind.config.js` — dilakukan SEBELUM halaman Login dibuat, supaya tidak restyle ulang nanti. Lihat `docs/UI.md`
+### 1.2 Design System & Komponen Dasar
+
+> Dikerjakan sebelum halaman apa pun dibuat — semua fase berikutnya bergantung pada ini supaya tidak ada restyle ulang. Lihat `docs/UI.md` bagian "Design Tokens".
+
+- [ ] Tentukan design tokens (warna primer/sekunder, warna status, background, border, text, font, spacing, radius, shadow) — isi `docs/UI.md`
+
+- [ ] Terapkan design tokens ke konfigurasi Tailwind
+
+- [ ] Komponen dasar reusable di `resources/js/Components/`:
+
+* [ ] `Button.vue` — primary, secondary, outline, ghost, danger, loading, disabled
+* [ ] `Input.vue` — text, number, password, search
+* [ ] `MoneyInput.vue` — input nominal rupiah dengan formatting
+* [ ] `Textarea.vue`
+* [ ] `Select.vue`
+* [ ] `Checkbox.vue`
+* [ ] `Radio.vue`
+* [ ] `FormField.vue` — label, input, helper text, validation error
+* [ ] `Badge.vue`
+* [ ] `StatusBadge.vue`
+* [ ] `Card.vue`
+* [ ] `Modal.vue`
+* [ ] `ConfirmDialog.vue`
+* [ ] `Dropdown.vue`
+* [ ] `Tooltip.vue`
+* [ ] `Alert.vue`
+* [ ] `Toast.vue`
+* [ ] `Spinner.vue`
+* [ ] `Skeleton.vue`
+* [ ] `EmptyState.vue`
+* [ ] `Pagination.vue`
+* [ ] `Table.vue`
+* [ ] `TableActions.vue`
+* [ ] `Tabs.vue`
+* [ ] `Breadcrumb.vue`
+* [ ] `DatePicker.vue`
+* [ ] `DateRangePicker.vue`
+
+- [ ] Komponen khusus POS:
+
+* [ ] `ProductSearch.vue` — pencarian produk berdasarkan nama/SKU/barcode
+* [ ] `ProductCard.vue` — tampilan produk untuk kasir
+* [ ] `CartItem.vue` — item dalam keranjang
+* [ ] `QuantityInput.vue` — tambah/kurang quantity
+* [ ] `PaymentMethodSelector.vue` — cash, transfer, debit
+* [ ] `PaymentSummary.vue` — subtotal, total, pembayaran, kembalian
+* [ ] `ReceiptPreview.vue` — preview struk 58mm/80mm
+
+- [ ] Layout dasar:
+
+* [ ] `AdminLayout.vue` — sidebar + header + content area untuk `Pages/Admin/`
+* [ ] `KasirLayout.vue` — layout minim distraksi untuk `Pages/Kasir/`
+* [ ] `AuthLayout.vue` — layout halaman login/authentication
+
+- [ ] Buat component showcase untuk memverifikasi seluruh komponen dan state UI secara visual
+
+- [ ] Terapkan design system ke 1 halaman contoh (misalnya halaman Login) untuk verifikasi visual sebelum digunakan di halaman lain
+
+- [ ] Pastikan seluruh komponen memiliki state yang diperlukan: default, hover, focus, active, disabled, loading, error, dan jika relevan empty state
+
+- [ ] Dokumentasikan aturan penggunaan komponen di `docs/UI.md`
+
+- [ ] Finalisasi design system sebelum masuk ke implementasi halaman fitur
+
+### 1.3 Autentikasi & Role
 - [ ] Implementasi sesuai `docs/features/auth-login.md`
 - [ ] Middleware `role:admin` / `role:kasir`
 - [ ] Middleware `EnsureShiftActive` untuk route kasir
 - [ ] Setup `routes/admin.php` & `routes/kasir.php` sesuai `AGENTS.md` (pemisahan route per role)
 - [ ] Redirect login sesuai role + cek shift aktif
 
-### 1.3 Manajemen Produk & Kategori (Admin)
+### 1.4 Manajemen Produk & Kategori (Admin)
 - [ ] CRUD Kategori (termasuk pilih parent untuk subkategori)
 - [ ] CRUD Produk (kategori, SKU/barcode, harga jual, harga modal, stok awal, stok minimum)
 - [ ] Validasi unik SKU/barcode
 - [ ] Halaman daftar produk dengan indikator stok menipis/habis
 
-### 1.4 Shift Kasir
+### 1.5 Shift Kasir
 - [ ] Buka shift (input modal awal kas)
 - [ ] Tutup shift (rekap kas sistem vs input fisik, tampilkan selisih)
 - [ ] Constraint satu shift aktif per kasir
 - [ ] Riwayat shift (admin & kasir)
 
-### 1.5 Transaksi (Checkout) — Fitur Inti
+### 1.6 Transaksi (Checkout) — Fitur Inti
 - [ ] Implementasi sesuai `docs/features/checkout.md`
 - [ ] Search produk (nama/SKU) + input barcode scanner
 - [ ] Keranjang: tambah/kurang quantity, hitung total real-time
@@ -60,27 +122,27 @@ p artisan pest:install` kalau belum ikut starter kit)
 - [ ] Generate `transaction_number` unik (tangani race condition)
 - [ ] Update cache `products.stock` setelah transaksi
 
-### 1.6 Struk
+### 1.7 Struk
 - [ ] Halaman/komponen `ReceiptPreview` format thermal 58mm/80mm
 - [ ] Cetak via `window.print()`
 - [ ] Cetak ulang struk dari Riwayat Transaksi
 
-### 1.7 Riwayat & Void Transaksi
+### 1.8 Riwayat & Void Transaksi
 - [ ] Riwayat transaksi kasir (hanya miliknya)
 - [ ] Riwayat transaksi admin (semua, filter tanggal/kasir/status)
 - [ ] Detail transaksi
 - [ ] Void transaksi (admin only): update status, insert `stock_movements` type `void_return`, wajib alasan
 
-### 1.8 Manajemen Stok
+### 1.9 Manajemen Stok
 - [ ] Riwayat pergerakan stok (`stock_movements`), filter produk/tipe/tanggal
 - [ ] Penyesuaian stok manual (`adjustment`), wajib catatan
 - [ ] Alert/badge stok menipis & stok habis
 
-### 1.9 Manajemen User (Admin)
+### 1.10 Manajemen User (Admin)
 - [ ] CRUD user (set role, set `is_active`)
 - [ ] Nonaktifkan user (bukan hapus — riwayat transaksi tetap utuh)
 
-### 1.10 Laporan Dasar
+### 1.11 Laporan Dasar
 - [ ] Laporan penjualan per rentang tanggal
 - [ ] Laporan per shift/kasir
 - [ ] Produk terlaris
